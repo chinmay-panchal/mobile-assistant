@@ -1,111 +1,180 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../auth/theme/auth_theme.dart';
 
+/// Modern, tactile subject card featuring pastel color identity,
+/// deterministic icon assignment, book counter, and contextual action menu.
 class SubjectCard extends StatelessWidget {
   final Map<String, dynamic> subject;
   final VoidCallback onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final int index;
 
   const SubjectCard({
-    Key? key,
+    super.key,
     required this.subject,
     required this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+    this.index = 0,
+  });
+
+  static const IconData subjectIcon = Icons.auto_stories_rounded;
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = Color(subject['iconColor']);
-    final theme = Theme.of(context);
+    final name = subject['name'] as String? ?? 'Untitled Subject';
+    final bookCount = subject['bookCount'] as int? ?? 0;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.divider.withOpacity(0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: AuthTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+        border: Border.all(color: AuthTheme.inputBorder, width: 1.2),
+        boxShadow: AuthTheme.cardShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: iconColor.withOpacity(0.1),
-                  child: Icon(Icons.menu_book, color: iconColor, size: 18),
+                // Top Row: Icon Container and Three-dot Menu
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Unified Common Icon Badge with Clean SaaS Styling
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                      ),
+                      child: Icon(
+                        subjectIcon,
+                        color: const Color(0xFF0284C7),
+                        size: 20,
+                      ),
+                    ),
+
+                    // Contextual Action Menu Button
+                    if (onEdit != null || onDelete != null)
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            Icons.more_vert_rounded,
+                            color: AuthTheme.textSecondary.withValues(alpha: 0.7),
+                            size: 18,
+                          ),
+                          splashRadius: 16,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: const BorderSide(color: AuthTheme.inputBorder),
+                          ),
+                          elevation: 4,
+                          shadowColor: Colors.black.withValues(alpha: 0.08),
+                          onSelected: (value) {
+                            if (value == 'edit') onEdit?.call();
+                            if (value == 'delete') onDelete?.call();
+                          },
+                          itemBuilder: (context) => [
+                            if (onEdit != null)
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit_outlined, size: 18, color: AuthTheme.textPrimary),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Edit Subject',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: AuthTheme.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (onDelete != null)
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete_outline_rounded, size: 18, color: AuthTheme.error),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Delete Subject',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AuthTheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
-                if (onEdit != null || onDelete != null)
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.more_vert, color: AppColors.textTertiary, size: 18),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      onSelected: (val) {
-                        if (val == 'edit') onEdit?.call();
-                        if (val == 'delete') onDelete?.call();
-                      },
-                      itemBuilder: (ctx) => [
-                        if (onEdit != null)
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: 18, color: AppColors.textPrimary),
-                                SizedBox(width: 8),
-                                Text('Edit Subject'),
-                              ],
-                            ),
+
+                // Bottom Content: Subject Name and Book Count
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name.toUpperCase(),
+                      style: const TextStyle(
+                        fontFamily: AuthTheme.fontFamily,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AuthTheme.textPrimary,
+                        letterSpacing: -0.2,
+                        height: 1.25,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.menu_book_rounded,
+                          size: 12,
+                          color: AuthTheme.textTertiary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$bookCount ${bookCount == 1 ? "book" : "books"}',
+                          style: const TextStyle(
+                            fontFamily: AuthTheme.fontFamily,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AuthTheme.textSecondary,
                           ),
-                        if (onDelete != null)
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                                SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: AppColors.error)),
-                              ],
-                            ),
-                          ),
+                        ),
                       ],
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subject['name'],
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Text('${subject['bookCount']} books', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Text('•', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                  ],
                 ),
-                Text('${subject['paperCount']} papers', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

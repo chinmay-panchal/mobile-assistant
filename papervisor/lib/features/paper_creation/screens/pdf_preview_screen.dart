@@ -8,11 +8,17 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../../../../services/pdf_export_service.dart';
 import '../../../../services/paper_service.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../auth/theme/auth_theme.dart';
+import '../../auth/widgets/auth_primary_button.dart';
 import '../models/custom_element.dart';
+import '../widgets/pdf_edit_sheet.dart';
+import '../widgets/pdf_preview_header.dart';
 import 'paper_editor_screen.dart';
 import 'visual_designer_screen.dart';
 
+/// Redesigned PDF Preview Screen matching the Papervisor design system.
+/// Features a modern top control bar (Save, Edit, Print, Share, Saved badge),
+/// a clean neutral document canvas, and a unified bottom sheet for edits.
 class PdfPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
   final Map<String, dynamic> paper;
@@ -34,7 +40,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
 
   Uint8List? _logoBytes;
   bool _isSaving = false;
-  bool _isSaved = false;   // true after a successful save
+  bool _isSaved = false; // true after a successful save
   late Map<String, dynamic> _paper;
   List<CustomElement> _customElements = [];
 
@@ -64,11 +70,11 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Logo',
-          toolbarColor: AppColors.primary,
+          toolbarColor: AuthTheme.primary,
           toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: AppColors.primary,
-          cropFrameColor: AppColors.primary,
-          cropGridColor: AppColors.primaryLight,
+          activeControlsWidgetColor: AuthTheme.primary,
+          cropFrameColor: AuthTheme.primary,
+          cropGridColor: AuthTheme.primaryLight,
           lockAspectRatio: false,
           hideBottomControls: false,
           initAspectRatio: CropAspectRatioPreset.original,
@@ -110,6 +116,99 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
     });
   }
 
+  Future<Uint8List> _generatePdfBytes([PdfPageFormat format = PdfPageFormat.a4]) {
+    return PdfExportService.generatePaperPdf(
+      format,
+      widget.subject,
+      _paper,
+      logoBytes: _logoBytes,
+      className: _paper['class_name'] as String?,
+      timeAllowedMinutes: _paper['time_allowed_minutes'] as int?,
+      customElements: _customElements,
+    );
+  }
+
+  Future<void> _onSaveTapped() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                ),
+                child: const Icon(
+                  Icons.cloud_upload_outlined,
+                  color: Color(0xFF0284C7),
+                  size: 26,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Save Paper to Cloud?',
+                style: TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AuthTheme.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "After saving this paper to the cloud, you won't be able to edit it anymore on the app.",
+                style: TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: AuthTheme.textSecondary,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: AuthPrimaryButton(
+                      text: 'Cancel',
+                      isSecondary: true,
+                      height: 44,
+                      onPressed: () => Navigator.pop(ctx, false),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AuthPrimaryButton(
+                      text: 'OK',
+                      height: 44,
+                      onPressed: () => Navigator.pop(ctx, true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true) {
+      await _savePdf();
+    }
+  }
+
   /// Generates the PDF bytes in memory, then uploads via multipart POST.
   Future<void> _savePdf() async {
     final paperId = _paper['id'] as String?;
@@ -121,17 +220,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // Re-generate the PDF bytes (same as the preview, including logo)
-      final pdfBytes = await PdfExportService.generatePaperPdf(
-        PdfPageFormat.a4,
-        widget.subject,
-        _paper,
-        logoBytes: _logoBytes,
-        className: _paper['class_name'] as String?,
-        timeAllowedMinutes: _paper['time_allowed_minutes'] as int?,
-        customElements: _customElements,
-      );
-
+      final pdfBytes = await _generatePdfBytes();
       final title = (_paper['title'] ?? 'paper').toString().replaceAll(' ', '_');
       final fileName = '$title.pdf';
 
@@ -156,11 +245,35 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
     }
   }
 
+  Future<void> _handlePrint() async {
+    final title = (_paper['title'] ?? 'paper').toString().replaceAll(' ', '_');
+    await Printing.layoutPdf(
+      name: '$title.pdf',
+      onLayout: (format) => _generatePdfBytes(format),
+    );
+  }
+
+  Future<void> _handleShare() async {
+    final title = (_paper['title'] ?? 'paper').toString().replaceAll(' ', '_');
+    final pdfBytes = await _generatePdfBytes();
+    await Printing.sharePdf(
+      bytes: pdfBytes,
+      filename: '$title.pdf',
+    );
+  }
+
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
+        content: Text(
+          msg,
+          style: const TextStyle(
+            fontFamily: AuthTheme.fontFamily,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: isError ? AuthTheme.error : AuthTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -168,310 +281,51 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   }
 
   void _showEditSheet() {
-    showModalBottomSheet(
+    PdfEditSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-            24, 16, 24, MediaQuery.of(ctx).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Edit Paper',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Customize your exam paper appearance',
-                style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-              ),
-              const SizedBox(height: 24),
-
-              // Logo section card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Row(
-                  children: [
-                    // Logo preview box
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _logoBytes != null
-                              ? AppColors.primary
-                              : Colors.grey[300]!,
-                          width: _logoBytes != null ? 2 : 1,
-                        ),
-                      ),
-                      child: _logoBytes != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(11),
-                              child: Image.memory(
-                                _logoBytes!,
-                                fit: BoxFit.contain,
-                              ),
-                            )
-                          : Icon(
-                              Icons.image_outlined,
-                              color: Colors.grey[400],
-                              size: 28,
-                            ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Institution Logo',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _logoBytes != null
-                                ? 'Logo added — appears top-right in PDF'
-                                : 'Will appear in top-right corner of PDF',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _logoBytes != null
-                                  ? AppColors.success
-                                  : Colors.grey[500],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  Navigator.pop(ctx);
-                                  await _pickLogo();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        AppColors.primaryDark,
-                                        AppColors.primaryLight,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    _logoBytes != null ? 'Change' : 'Upload',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (_logoBytes != null) ...[
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.pop(ctx);
-                                    _removeLogo();
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red[50],
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.red[200]!),
-                                    ),
-                                    child: Text(
-                                      'Remove',
-                                      style: TextStyle(
-                                        color: Colors.red[600],
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Edit content card
-              GestureDetector(
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final updatedPaper = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PaperEditorScreen(paper: _paper),
-                    ),
-                  );
-                  if (updatedPaper != null && mounted) {
-                    setState(() {
-                      _paper = updatedPaper;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.edit_document, color: AppColors.primary, size: 28),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Edit Paper Content', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                            SizedBox(height: 2),
-                            Text('Modify questions, titles, marks, and time', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Visual Designer card
-              GestureDetector(
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final newElements = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VisualDesignerScreen(
-                        subject: widget.subject,
-                        paper: _paper,
-                        initialElements: _customElements,
-                        initialLogoBytes: _logoBytes,
-                      ),
-                    ),
-                  );
-                  if (newElements != null && mounted) {
-                    setState(() {
-                      _customElements = List<CustomElement>.from(newElements);
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.design_services, color: AppColors.primary, size: 28),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Visual Designer (Drag & Drop)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                            SizedBox(height: 2),
-                            Text('Add floating text and images', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Info note
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline,
-                        size: 16, color: AppColors.primaryLight),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'PDF will regenerate automatically after logo change.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+      logoBytes: _logoBytes,
+      onPickLogo: () async {
+        Navigator.pop(context);
+        await _pickLogo();
+      },
+      onRemoveLogo: () {
+        Navigator.pop(context);
+        _removeLogo();
+      },
+      onEditContent: () async {
+        Navigator.pop(context);
+        final updatedPaper = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaperEditorScreen(paper: _paper),
           ),
         );
+        if (updatedPaper != null && mounted) {
+          setState(() {
+            _paper = updatedPaper;
+            _isSaved = false;
+          });
+        }
+      },
+      onOpenVisualDesigner: () async {
+        Navigator.pop(context);
+        final newElements = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VisualDesignerScreen(
+              subject: widget.subject,
+              paper: _paper,
+              initialElements: _customElements,
+              initialLogoBytes: _logoBytes,
+            ),
+          ),
+        );
+        if (newElements != null && mounted) {
+          setState(() {
+            _customElements = List<CustomElement>.from(newElements);
+            _isSaved = false;
+          });
+        }
       },
     );
   }
@@ -479,91 +333,52 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final String title = _paper['title'] ?? 'Generated Paper';
+    final String subjectName = widget.subject['name'] ?? 'Subject';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'PDF Preview',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: AppColors.primary,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          if (!widget.isReadOnly) ...[
-            // ── Saved badge ──
-            if (_isSaved)
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.cloud_done, size: 12, color: Colors.white),
-                        SizedBox(width: 4),
-                        Text(
-                          'Saved',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      backgroundColor: const Color(0xFFF1F5F9), // Calm neutral canvas
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top Modern Header
+            PdfPreviewHeader(
+              title: title,
+              subtitle: subjectName,
+              isReadOnly: widget.isReadOnly,
+              isSaved: _isSaved,
+              isSaving: _isSaving,
+              onBack: () => Navigator.pop(context),
+              onSave: _onSaveTapped,
+              onEdit: _showEditSheet,
+              onPrint: _handlePrint,
+              onShare: _handleShare,
+            ),
+
+            // Document Canvas Area
+            Expanded(
+              child: PdfPreview(
+                // ValueKey forces full rebuild of PdfPreview when logo/elements change
+                key: ValueKey('${_logoBytes.hashCode}_${_customElements.length}'),
+                build: (format) => _generatePdfBytes(format),
+                pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
+                canChangeOrientation: false,
+                canChangePageFormat: false,
+                canDebug: false,
+                useActions: false,
+                allowPrinting: false,
+                allowSharing: false,
+                actions: const [], // Hides default bottom bar
+                scrollViewDecoration: const BoxDecoration(
+                  color: Color(0xFFF1F5F9),
+                ),
+                previewPageMargin: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
                 ),
               ),
-            // ── Save button ──
-            _isSaving
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                    ),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.save_alt_outlined, color: Colors.white),
-                    tooltip: 'Save PDF to cloud',
-                    onPressed: _savePdf,
-                  ),
-            // ── Edit button ──
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.white),
-              tooltip: 'Edit Paper',
-              onPressed: _showEditSheet,
             ),
           ],
-        ],
-      ),
-      body: PdfPreview(
-        // ValueKey forces a full rebuild of PdfPreview when logo changes
-        key: ValueKey(_logoBytes.hashCode),
-        build: (format) => PdfExportService.generatePaperPdf(
-          format,
-          widget.subject,
-          _paper,
-          logoBytes: _logoBytes,
-          className: _paper['class_name'] as String?,
-          timeAllowedMinutes: _paper['time_allowed_minutes'] as int?,
-          customElements: _customElements,
         ),
-        pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
-        canChangeOrientation: false,
-        canChangePageFormat: false,
-        canDebug: false,
       ),
     );
   }

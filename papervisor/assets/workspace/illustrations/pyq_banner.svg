@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80" fill="none">
+  <defs>
+    <linearGradient id="pyqGrad" x1="10" y1="10" x2="90" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="docGrad" x1="20" y1="15" x2="70" y2="65" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background glow circle -->
+  <circle cx="50" cy="40" r="35" fill="#E0F2FE" fill-opacity="0.6"/>
+
+  <!-- Back Document -->
+  <rect x="25" y="16" width="40" height="50" rx="8" fill="#BAE6FD" transform="rotate(-8 25 16)"/>
+  
+  <!-- Front Document -->
+  <rect x="32" y="15" width="42" height="52" rx="8" fill="url(#docGrad)" stroke="#E0F2FE" stroke-width="1.2"/>
+  <rect x="38" y="24" width="22" height="4" rx="2" fill="#38BDF8"/>
+  <rect x="38" y="32" width="30" height="3" rx="1.5" fill="#CBD5E1"/>
+  <rect x="38" y="39" width="24" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="38" y="46" width="28" height="3" rx="1.5" fill="#E2E8F0"/>
+
+  <!-- Floating Magnifying Glass with AI Sparkle -->
+  <g transform="translate(48, 30)">
+    <circle cx="22" cy="22" r="14" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.5"/>
+    <circle cx="22" cy="22" r="9" fill="#E0F2FE" fill-opacity="0.5"/>
+    <path d="M32 32L40 40" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
+    <!-- Tiny sparkle inside glass -->
+    <path d="M22 17L23 20L26 21L23 22L22 25L21 22L18 21L21 20Z" fill="#0284C7"/>
+  </g>
+</svg>

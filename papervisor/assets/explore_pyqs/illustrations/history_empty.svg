@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" fill="none">
+  <defs>
+    <linearGradient id="histBg" x1="10" y1="10" x2="150" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <linearGradient id="folderGrad" x1="20" y1="40" x2="140" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EEF2FF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+    <linearGradient id="docGrad2" x1="0" y1="0" x2="60" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="histPrimary" x1="30" y1="30" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Circle -->
+  <circle cx="80" cy="70" r="55" fill="url(#histBg)" opacity="0.6"/>
+
+  <!-- Back Folder Flap -->
+  <path d="M35 48C35 44.6863 37.6863 42 41 42H62L70 50H119C122.314 50 125 52.6863 125 56V104C125 107.314 122.314 110 119 110H41C37.6863 110 35 107.314 35 104V48Z" fill="#CBD5E1"/>
+
+  <!-- Peeking Paper -->
+  <g transform="translate(52, 32)">
+    <rect x="0" y="0" width="56" height="68" rx="8" fill="url(#docGrad2)" stroke="#E2E8F0" stroke-width="1.2"/>
+    <rect x="10" y="10" width="22" height="4" rx="2" fill="url(#histPrimary)"/>
+    <rect x="10" y="20" width="36" height="3" rx="1.5" fill="#94A3B8"/>
+    <rect x="10" y="28" width="30" height="3" rx="1.5" fill="#CBD5E1"/>
+    <rect x="10" y="36" width="34" height="3" rx="1.5" fill="#E2E8F0"/>
+  </g>
+
+  <!-- Front Folder Body -->
+  <g>
+    <rect x="32" y="56" width="96" height="56" rx="10" fill="url(#folderGrad)" stroke="#C7D2FE" stroke-width="1.2"/>
+    <!-- Subtle Folder Tab Cut -->
+    <path d="M32 64C32 60 35 56 40 56H72L80 64H120C124 64 128 67 128 72V104C128 108.418 124.418 112 120 112H40C35.5817 112 32 108.418 32 104V64Z" fill="#EEF2FF" opacity="0.9"/>
+  </g>
+
+  <!-- Clock/History Badge Overlay -->
+  <g transform="translate(94, 76)">
+    <circle cx="16" cy="16" r="15" fill="#FFFFFF" stroke="url(#histPrimary)" stroke-width="2.5"/>
+    <!-- Clock Hands -->
+    <path d="M16 9V16L21 19" stroke="url(#histPrimary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

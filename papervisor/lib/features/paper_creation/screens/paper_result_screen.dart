@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../auth/theme/auth_theme.dart';
+import '../../auth/widgets/auth_primary_button.dart';
 import 'pdf_preview_screen.dart';
 import '../models/paper_wizard_state.dart';
 import 'generating_loader_screen.dart';
@@ -11,19 +12,18 @@ class PaperResultScreen extends StatelessWidget {
   final String? originalTitle;
 
   const PaperResultScreen({
-    Key? key,
+    super.key,
     required this.subject,
     required this.paper,
     this.wizardState,
     this.originalTitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final String title = paper['title'] ?? 'Generated Paper';
     final int marks = paper['total_marks'] ?? 0;
-    final String difficulty = paper['difficulty'] ?? 'Unknown';
+    final String difficulty = paper['difficulty'] ?? 'Balanced';
     final List<dynamic> questions = paper['questions'] ?? [];
     
     // Group questions by section
@@ -46,8 +46,6 @@ class PaperResultScreen extends StatelessWidget {
       for (final q in sectionQuestions) {
         final String? choiceGroup = q['choice_group'];
         
-        // Only count the question and its marks if it's a new standalone question 
-        // or the FIRST alternative of a choice group
         if (choiceGroup == null || choiceGroup != currentChoiceGroup) {
           sectionUniqueQuestions++;
           sectionMarks += (q['marks'] as num?)?.toInt() ?? 0;
@@ -58,7 +56,7 @@ class PaperResultScreen extends StatelessWidget {
       uniqueQuestionsCount += sectionUniqueQuestions;
 
       return _sectionRow(
-        sectionName.substring(0, 1),
+        sectionName.isNotEmpty ? sectionName.substring(0, 1) : 'S',
         _getColorForSection(sectionName),
         sectionName,
         sectionMarks,
@@ -78,368 +76,392 @@ class PaperResultScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top header row with Back button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 16, 24, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                    onPressed: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${subject['name'] ?? 'Subject'}',
-                          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Paper Ready! 🎉',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.successLight,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check, color: AppColors.success, size: 14),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Generated',
-                          style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Header (No back arrow)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Row(
                   children: [
-                    // Paper Preview Card
+                    // Subject Icon Badge
                     Container(
-                      width: double.infinity,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.divider.withOpacity(0.6),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        color: const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBAE6FD)),
                       ),
+                      child: const Icon(
+                        Icons.auto_stories_rounded,
+                        color: Color(0xFF0284C7),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    Expanded(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Gradient accent bar at top
-                          Container(
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [AppColors.primaryDark, AppColors.primaryLight, Color(0xFF06B6D4)],
-                              ),
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                          Text(
+                            subject['name'] ?? 'Subject',
+                            style: const TextStyle(
+                              fontFamily: AuthTheme.fontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AuthTheme.textSecondary,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  (subject['name'] ?? 'SUBJECT').toString().toUpperCase(),
-                                  style: const TextStyle(
-                                    color: AppColors.textTertiary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1.2,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  title,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Subject: ${subject['name'] ?? 'N/A'}',
-                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    _metaStat('QUESTIONS', '$uniqueQuestionsCount'),
-                                    _vertDivider(),
-                                    _metaStat('MAX. MARKS', '$marks'),
-                                    _vertDivider(),
-                                    _metaStat('DIFFICULTY', difficulty[0].toUpperCase() + difficulty.substring(1).toLowerCase()),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-                                const Divider(color: AppColors.divider),
-                                const SizedBox(height: 8),
-                                if (sectionWidgets.isEmpty)
-                                  const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Text('No sections available.', style: TextStyle(color: AppColors.textSecondary)),
-                                  )
-                                else
-                                  ...sectionWidgets,
-                              ],
+                          const SizedBox(height: 1),
+                          const Text(
+                            'Paper Ready! 🎉',
+                            style: TextStyle(
+                              fontFamily: AuthTheme.fontFamily,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AuthTheme.textPrimary,
+                              letterSpacing: -0.3,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
 
-                    // Stats row
-                    Row(
-                      children: [
-                        _statPill('$uniqueQuestionsCount', 'Questions', AppColors.primary),
-                        const SizedBox(width: 12),
-                        _statPill('${(paper['selected_chapter_ids'] as List?)?.length ?? 0}', 'Chapters', AppColors.success),
-                        const SizedBox(width: 12),
-                        _statPill('$marks', 'Total Marks', const Color(0xFF9333EA)),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Action buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PdfPreviewScreen(
-                                    subject: subject,
-                                    paper: paper,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: _gradientButton('Preview', Icons.preview, [AppColors.primaryDark, AppColors.primaryLight]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, color: AuthTheme.success, size: 14),
+                          SizedBox(width: 4),
+                          Text(
+                            'Generated',
+                            style: TextStyle(
+                              fontFamily: AuthTheme.fontFamily,
+                              color: AuthTheme.success,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (wizardState != null) {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => GeneratingLoaderScreen(
-                                      subject: subject,
-                                      state: wizardState!,
-                                      title: originalTitle ?? paper['title'] ?? 'Generated Paper',
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                Navigator.popUntil(context, (route) => route.isFirst);
-                              }
-                            },
-                            child: _gradientButton('Retry', Icons.refresh, [AppColors.warning, const Color(0xFFF59E0B)]),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          side: const BorderSide(color: AppColors.primary, width: 1.5),
-                          backgroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                        },
-                        icon: const Icon(Icons.home_outlined, color: AppColors.primary),
-                        label: const Text(
-                          'Done / Back to Home',
-                          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-
                   ],
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 8),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      // Paper Summary Card
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Top subtle accent bar
+                            Container(
+                              height: 4,
+                              decoration: const BoxDecoration(
+                                color: AuthTheme.primary,
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    (subject['name'] ?? 'SUBJECT').toString().toUpperCase(),
+                                    style: const TextStyle(
+                                      fontFamily: AuthTheme.fontFamily,
+                                      color: AuthTheme.textTertiary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontFamily: AuthTheme.fontFamily,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                      color: AuthTheme.textPrimary,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Exam Paper · ${subject['name'] ?? ''}',
+                                    style: const TextStyle(
+                                      fontFamily: AuthTheme.fontFamily,
+                                      color: AuthTheme.textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  // Metrics Row
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _metaStat('QUESTIONS', '$uniqueQuestionsCount'),
+                                        _vertDivider(),
+                                        _metaStat('MAX. MARKS', '$marks'),
+                                        _vertDivider(),
+                                        _metaStat('DIFFICULTY', difficulty[0].toUpperCase() + difficulty.substring(1).toLowerCase()),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 20),
+                                  const Divider(color: Color(0xFFE2E8F0), height: 1),
+                                  const SizedBox(height: 10),
+
+                                  if (sectionWidgets.isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: Text(
+                                        'No sections available.',
+                                        style: TextStyle(
+                                          fontFamily: AuthTheme.fontFamily,
+                                          color: AuthTheme.textSecondary,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ...sectionWidgets,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Action buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: AuthPrimaryButton(
+                              text: 'Preview PDF',
+                              icon: const Icon(Icons.visibility_outlined, color: Colors.white, size: 18),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PdfPreviewScreen(
+                                      subject: subject,
+                                      paper: paper,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (wizardState != null) ...[
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AuthTheme.textPrimary,
+                                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                ),
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => GeneratingLoaderScreen(
+                                        subject: subject,
+                                        state: wizardState!,
+                                        title: originalTitle ?? paper['title'] ?? 'Generated Paper',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.refresh_rounded, size: 18),
+                                label: const Text(
+                                  'Remake',
+                                  style: TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.popUntil(context, (route) => route.isFirst);
+                          },
+                          icon: const Icon(Icons.home_outlined, size: 18, color: AuthTheme.textSecondary),
+                          label: const Text(
+                            'Done · Return to Home',
+                            style: TextStyle(
+                              fontFamily: AuthTheme.fontFamily,
+                              color: AuthTheme.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Color _getColorForSection(String sectionName) {
-    if (sectionName.toLowerCase().contains('a')) return const Color(0xFF6366F1);
-    if (sectionName.toLowerCase().contains('b')) return AppColors.success;
-    if (sectionName.toLowerCase().contains('c')) return AppColors.warning;
-    return AppColors.error;
+    if (sectionName.toLowerCase().contains('a')) return AuthTheme.primary;
+    if (sectionName.toLowerCase().contains('b')) return const Color(0xFF2563EB);
+    if (sectionName.toLowerCase().contains('c')) return const Color(0xFF0D9488);
+    return const Color(0xFFD97706);
   }
 
   Widget _metaStat(String label, String value) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.8)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: AuthTheme.fontFamily,
+            color: AuthTheme.textTertiary,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: AuthTheme.fontFamily,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            color: AuthTheme.textPrimary,
+          ),
+        ),
       ],
     );
   }
 
   Widget _vertDivider() {
-    return Container(width: 1, height: 32, color: AppColors.divider);
+    return Container(width: 1, height: 28, color: const Color(0xFFE2E8F0));
   }
 
   Widget _sectionRow(String letter, Color color, String title, int marks, int qCount) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: color.withOpacity(0.12),
-                child: Text(letter, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11)),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              letter,
+              style: TextStyle(
+                fontFamily: AuthTheme.fontFamily,
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              ),
-              Text('[$marks marks]', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.only(left: 36),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  height: 6,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text('$qCount questions', style: const TextStyle(color: AppColors.textTertiary, fontSize: 11)),
-              ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontFamily: AuthTheme.fontFamily,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: AuthTheme.textPrimary,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$qCount Qs · $marks Marks',
+              style: const TextStyle(
+                fontFamily: AuthTheme.fontFamily,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AuthTheme.textSecondary,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _statPill(String value, String label, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.divider.withOpacity(0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12), textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _gradientButton(String label, IconData icon, List<Color> colors) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.first.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: null, // Just UI for now, except for the wrapping GestureDetector for Done
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-            ],
-          ),
-        ),
       ),
     );
   }

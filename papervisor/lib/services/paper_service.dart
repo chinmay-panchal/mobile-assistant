@@ -145,6 +145,21 @@ class PaperService {
     }
   }
 
+  Future<Map<String, dynamic>> getPaper(String paperId) async {
+    final response = await _apiClient.get('/papers/$paperId');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      try {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to load paper details');
+      } catch (e) {
+        if (e is FormatException) throw Exception('An unexpected server error occurred.');
+        rethrow;
+      }
+    }
+  }
+
   Future<void> deletePaper(String paperId) async {
     final response = await _apiClient.delete('/papers/$paperId');
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -158,3 +173,4 @@ class PaperService {
     }
   }
 }
+

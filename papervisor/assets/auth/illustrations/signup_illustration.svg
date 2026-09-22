@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="bgGrad2" x1="20" y1="30" x2="290" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FDF2F8" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#EEF2FF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ECFDF5" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="rocketBodyGrad" x1="120" y1="40" x2="190" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="pinkGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F472B6"/>
+      <stop offset="100%" stop-color="#E11D48"/>
+    </linearGradient>
+    <linearGradient id="mintGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background pastel blob -->
+  <path d="M60 70C40 120 70 170 130 185C190 200 270 160 280 110C290 60 240 20 180 25C120 30 80 20 60 70Z" fill="url(#bgGrad2)"/>
+
+  <!-- Decorative Orbit ring -->
+  <ellipse cx="160" cy="110" rx="110" ry="40" stroke="#E0E7FF" stroke-width="2" stroke-dasharray="4 4" fill="none" transform="rotate(-15 160 110)"/>
+
+  <!-- Sparkles & Planets -->
+  <circle cx="58" cy="82" r="5" fill="#F472B6"/>
+  <circle cx="270" cy="70" r="7" fill="#6EE7B7"/>
+  <path d="M72 150L74 156L80 158L74 160L72 166L70 160L64 158L70 156Z" fill="#FBBF24"/>
+  <path d="M255 145L257 151L263 153L257 155L255 161L253 155L247 153L253 151Z" fill="#818CF8"/>
+
+  <!-- Launching Rocket / Sparkle Element -->
+  <g>
+    <!-- Rocket Wings -->
+    <path d="M130 125L112 142C110 144 112 148 115 148L132 142Z" fill="url(#pinkGrad)"/>
+    <path d="M190 125L208 142C210 144 208 148 205 148L188 142Z" fill="url(#pinkGrad)"/>
+    
+    <!-- Rocket Flame -->
+    <path d="M148 145C148 165 160 180 160 180C160 180 172 165 172 145Z" fill="#FBBF24"/>
+    <path d="M153 145C153 158 160 168 160 168C160 168 167 158 167 145Z" fill="#F97316"/>
+
+    <!-- Rocket Body -->
+    <path d="M160 38C142 62 135 105 135 140H185C185 105 178 62 160 38Z" fill="url(#rocketBodyGrad)" stroke="#EEF2FF" stroke-width="1.5"/>
+    <path d="M160 38C152 50 144 72 142 85H178C176 72 168 50 160 38Z" fill="url(#purpleGrad)"/>
+
+    <!-- Window -->
+    <circle cx="160" cy="108" r="14" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+    <circle cx="160" cy="108" r="10" fill="#38BDF8"/>
+    <circle cx="157" cy="104" r="3" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Left Floating Badge: New Account Sparkle -->
+  <g>
+    <rect x="76" y="65" width="42" height="42" rx="14" fill="#000000" fill-opacity="0.04"/>
+    <rect x="74" y="62" width="42" height="42" rx="14" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="95" cy="83" r="13" fill="#FDF2F8"/>
+    <path d="M95 76L97 81L102 83L97 85L95 90L93 85L88 83L93 81Z" fill="url(#pinkGrad)"/>
+  </g>
+
+  <!-- Right Floating Badge: Checkmark Verified -->
+  <g>
+    <circle cx="236" cy="88" r="22" fill="#000000" fill-opacity="0.04"/>
+    <circle cx="235" cy="85" r="22" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="235" cy="85" r="15" fill="url(#mintGrad)"/>
+    <path d="M229 85L233 89L241 81" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="subjBgGrad" x1="40" y1="20" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EEF2FF" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#E0F2FE" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FDF2F8" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="bookCover" x1="90" y1="70" x2="230" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+    <linearGradient id="pagesGrad" x1="100" y1="70" x2="220" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="capGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="atomGrad" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F472B6"/>
+      <stop offset="100%" stop-color="#DB2777"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background blob -->
+  <path d="M70 50C45 95 80 160 145 180C210 200 265 155 270 100C275 45 215 20 155 25C95 30 95 10 70 50Z" fill="url(#subjBgGrad)"/>
+
+  <!-- Orbits & Sparkles -->
+  <circle cx="260" cy="50" r="14" stroke="#C7D2FE" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <circle cx="55" cy="140" r="10" stroke="#BAE6FD" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+  <circle cx="70" cy="65" r="4" fill="#F472B6"/>
+  <circle cx="250" cy="145" r="4.5" fill="#38BDF8"/>
+  <path d="M265 110L267 114L271 116L267 118L265 122L263 118L259 116L263 114Z" fill="#FBBF24"/>
+  <path d="M60 95L62 99L66 101L62 103L60 107L58 103L54 101L58 99Z" fill="#818CF8"/>
+
+  <!-- Shadow beneath book -->
+  <ellipse cx="160" cy="165" rx="75" ry="12" fill="#4F46E5" fill-opacity="0.08"/>
+
+  <!-- Open Book Base -->
+  <path d="M90 145C115 138 145 142 160 150C175 142 205 138 230 145V85C205 78 175 82 160 90C145 82 115 78 90 85V145Z" fill="url(#bookCover)"/>
+  
+  <!-- Book Pages (Left & Right Spreads) -->
+  <path d="M96 140C118 134 144 138 158 146V86C144 78 118 74 96 80V140Z" fill="url(#pagesGrad)" stroke="#EEF2FF" stroke-width="1"/>
+  <path d="M224 140C202 134 176 138 162 146V86C176 78 202 74 224 80V140Z" fill="url(#pagesGrad)" stroke="#EEF2FF" stroke-width="1"/>
+
+  <!-- Text lines on pages -->
+  <rect x="108" y="96" width="36" height="3" rx="1.5" fill="#C7D2FE"/>
+  <rect x="108" y="104" width="30" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="108" y="112" width="38" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="108" y="120" width="24" height="3" rx="1.5" fill="#E2E8F0"/>
+
+  <rect x="176" y="96" width="36" height="3" rx="1.5" fill="#C7D2FE"/>
+  <rect x="176" y="104" width="38" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="176" y="112" width="28" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="176" y="120" width="32" height="3" rx="1.5" fill="#E2E8F0"/>
+
+  <!-- Left Floating Badge: Science / Atom -->
+  <g>
+    <rect x="66" y="104" width="38" height="38" rx="12" fill="#000000" fill-opacity="0.04"/>
+    <rect x="64" y="100" width="38" height="38" rx="12" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="83" cy="119" r="11" fill="#FDF2F8"/>
+    <ellipse cx="83" cy="119" rx="8" ry="3" stroke="url(#atomGrad)" stroke-width="1.2" transform="rotate(30 83 119)" fill="none"/>
+    <ellipse cx="83" cy="119" rx="8" ry="3" stroke="url(#atomGrad)" stroke-width="1.2" transform="rotate(-30 83 119)" fill="none"/>
+    <circle cx="83" cy="119" r="2" fill="url(#atomGrad)"/>
+  </g>
+
+  <!-- Right Floating Badge: Graduation Cap -->
+  <g>
+    <rect x="220" y="96" width="38" height="38" rx="12" fill="#000000" fill-opacity="0.04"/>
+    <rect x="218" y="92" width="38" height="38" rx="12" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="237" cy="111" r="11" fill="#E0F2FE"/>
+    <!-- Cap icon -->
+    <path d="M237 105L244 109L237 113L230 109L237 105Z" fill="url(#capGrad)"/>
+    <path d="M232 111V115C232 116.5 234.5 117.5 237 117.5C239.5 117.5 242 116.5 242 115V111" stroke="url(#capGrad)" stroke-width="1.2" fill="none"/>
+  </g>
+</svg>

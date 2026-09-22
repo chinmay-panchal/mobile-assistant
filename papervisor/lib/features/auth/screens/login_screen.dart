@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/custom_text_field.dart';
-import '../../../core/widgets/primary_button.dart';
 import '../../../services/auth_service.dart';
 import '../../workspace/screens/home_screen.dart';
-import 'signup_screen.dart';
+import '../constants/auth_assets.dart';
+import '../theme/auth_theme.dart';
+import '../widgets/auth_header.dart';
+import '../widgets/auth_illustration.dart';
+import '../widgets/auth_primary_button.dart';
+import '../widgets/auth_scaffold.dart';
+import '../widgets/auth_text_field.dart';
 import 'forgot_password_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -33,7 +37,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password.')),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: AuthTheme.error,
+          content: const Text(
+            'Please enter both email and password.',
+            style: TextStyle(fontFamily: AuthTheme.fontFamily, fontWeight: FontWeight.w600),
+          ),
+        ),
       );
       return;
     }
@@ -51,7 +63,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: AuthTheme.error,
+            content: Text(
+              e.toString().replaceAll('Exception: ', ''),
+              style: const TextStyle(fontFamily: AuthTheme.fontFamily, fontWeight: FontWeight.w500),
+            ),
+          ),
         );
       }
     } finally {
@@ -63,134 +83,143 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    return AuthScaffold(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 8),
+          // PaperCraft Brand Title (Clean typography above cardboard, no badge pill)
+          const Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 40),
-              Container(
-                width: 200,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Center(
-                  child: Icon(Icons.edit_document, size: 64, color: AppColors.primary),
-                ),
+              Icon(
+                Icons.auto_awesome_rounded,
+                size: 18,
+                color: Color(0xFF0284C7),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.description, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'PaperCraft',
-                    style: theme.textTheme.headlineLarge,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+              SizedBox(width: 6),
               Text(
-                'AI exam papers for teachers',
-                style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 40),
-              
-              // Tabs
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                'PaperCraft',
+                style: TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AuthTheme.textPrimary,
+                  letterSpacing: -0.3,
                 ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Log In',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SignupScreen()),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Sign Up',
-                              style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-              CustomTextField(
-                controller: _emailController,
-                label: 'EMAIL',
-                hintText: 'teacher@school.edu',
-                prefixIcon: Icons.email_outlined,
-              ),
-              const SizedBox(height: 24),
-              CustomTextField(
-                controller: _passwordController,
-                label: 'PASSWORD',
-                hintText: '••••••••',
-                prefixIcon: Icons.lock_outline,
-                isPassword: true,
-              ),
-              const SizedBox(height: 16),
-               Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                    );
-                  },
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              PrimaryButton(
-                text: _isLoading ? 'Logging in...' : 'Log In',
-                onPressed: _isLoading ? () {} : _handleLogin,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 10),
+
+          // Cardboard SVG Illustration
+          const AuthIllustration(
+            assetPath: AuthAssets.loginIllustration,
+            height: 135,
+          ),
+          const SizedBox(height: 16),
+
+          // Header Text
+          const AuthHeader(
+            title: 'Welcome back 👋',
+            subtitle: 'Sign in to continue creating exam papers.',
+          ),
+          const SizedBox(height: 28),
+
+          // Input Form Container
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: ShapeDecoration(
+              color: AuthTheme.surfaceWhite,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+                side: BorderSide(color: AuthTheme.inputBorder.withValues(alpha: 0.6), width: 1.0),
+              ),
+              shadows: AuthTheme.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AuthTextField(
+                  controller: _emailController,
+                  label: 'Email address',
+                  hintText: 'teacher@school.edu',
+                  prefixIcon: Icons.mail_outline_rounded,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 18),
+                AuthTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hintText: 'Enter your password',
+                  prefixIcon: Icons.lock_outline_rounded,
+                  isPassword: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _handleLogin(),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Forgot password?',
+                      style: AuthTheme.link,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                AuthPrimaryButton(
+                  text: 'Log In',
+                  isLoading: _isLoading,
+                  onPressed: _handleLogin,
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Toggle to Sign Up
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Don't have an account? ",
+                style: AuthTheme.subtitle,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignupScreen()),
+                  );
+                },
+                child: const Text(
+                  'Create account',
+                  style: TextStyle(
+                    fontFamily: AuthTheme.fontFamily,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AuthTheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

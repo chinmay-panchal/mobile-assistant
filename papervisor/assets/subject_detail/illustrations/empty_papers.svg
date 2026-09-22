@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="paperBgGrad" x1="40" y1="20" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F5F3FF" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#EFF6FF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ECFDF5" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="sheetGrad" x1="105" y1="60" x2="215" y2="155" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="sparkleGrad" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background blob -->
+  <path d="M70 50C45 95 80 160 145 180C210 200 265 155 270 100C275 45 215 20 155 25C95 30 95 10 70 50Z" fill="url(#paperBgGrad)"/>
+
+  <!-- Orbits & Sparkles -->
+  <circle cx="260" cy="55" r="12" stroke="#DDD6FE" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <circle cx="65" cy="135" r="8" stroke="#BAE6FD" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+  <circle cx="75" cy="65" r="4" fill="#A855F7"/>
+  <circle cx="250" cy="140" r="4" fill="#10B981"/>
+  <path d="M260 105L262 109L266 111L262 113L260 117L258 113L254 111L258 109Z" fill="#FBBF24"/>
+  <path d="M62 90L64 94L68 96L64 98L62 102L60 98L56 96L60 94Z" fill="#6366F1"/>
+
+  <!-- Shadow -->
+  <ellipse cx="160" cy="165" rx="65" ry="9" fill="#4F46E5" fill-opacity="0.08"/>
+
+  <!-- Background tilted paper sheet -->
+  <rect x="125" y="65" width="85" height="95" rx="8" transform="rotate(6 125 65)" fill="#EDE9FE" stroke="#DDD6FE" stroke-width="1"/>
+
+  <!-- Main Document Sheet with Folded Corner -->
+  <path d="M110 65C110 60.5817 113.582 57 118 57H175L198 80V152C198 156.418 194.418 160 190 160H118C113.582 160 110 156.418 110 152V65Z" fill="url(#sheetGrad)" stroke="#E2E8F0" stroke-width="1.5"/>
+  <path d="M175 57V74C175 77.3137 177.686 80 181 80H198L175 57Z" fill="#E0E7FF"/>
+
+  <!-- Document Lines -->
+  <rect x="124" y="82" width="42" height="4" rx="2" fill="#6366F1"/>
+  <rect x="124" y="93" width="60" height="3" rx="1.5" fill="#CBD5E1"/>
+  <rect x="124" y="101" width="54" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="124" y="109" width="58" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="124" y="117" width="40" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="124" y="125" width="48" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="124" y="133" width="30" height="3" rx="1.5" fill="#E2E8F0"/>
+
+  <!-- AI Magic Wand Badge Floating -->
+  <g transform="translate(182, 125)">
+    <rect width="36" height="36" rx="12" fill="url(#sparkleGrad)"/>
+    <path d="M14 22L22 14M22 14L18 14M22 14L22 18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M11 13L12 15L14 16L12 17L11 19L10 17L8 16L10 15Z" fill="#FDE047"/>
+  </g>
+</svg>

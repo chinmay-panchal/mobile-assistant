@@ -1,138 +1,206 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../constants/workspace_theme.dart';
 
+/// Modern, tactile workspace card featuring clean SaaS surface identity,
+/// subject counters, contextual action menu, and smooth tap feedback.
 class WorkspaceCard extends StatelessWidget {
   final Map<String, dynamic> workspace;
   final VoidCallback onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final int index;
 
   const WorkspaceCard({
-    Key? key,
+    super.key,
     required this.workspace,
     required this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+    this.index = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = Color(workspace['color']);
-    final iconColor = Color(workspace['iconColor']);
+    const icon = Icons.folder_outlined;
+    final name = (workspace['name'] as String? ?? 'Untitled Workspace').toUpperCase();
+    final subjectCount = workspace['subjectCount'] as int? ?? 0;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-            // Decorative circles
-            Positioned(
-              right: -20,
-              top: -20,
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          workspace['name'],
-                          style: TextStyle(
-                            color: iconColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(Icons.menu_book, size: 16, color: iconColor.withOpacity(0.8)),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                '${workspace['subjectCount']} Subjects',
-                                style: TextStyle(color: iconColor.withOpacity(0.8), fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Icon(Icons.insert_drive_file_outlined, size: 16, color: iconColor.withOpacity(0.8)),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                '${workspace['paperCount']} Papers',
-                                style: TextStyle(color: iconColor.withOpacity(0.8), fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: WorkspaceTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+        border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
+        boxShadow: WorkspaceTheme.cardShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Row(
+              children: [
+                // Clean Architectural Workspace Icon Container
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: WorkspaceTheme.accentLight,
+                    borderRadius: BorderRadius.circular(WorkspaceTheme.radiusElement),
+                    border: Border.all(color: WorkspaceTheme.accentBorder),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Icon(
+                    icon,
+                    color: WorkspaceTheme.accentSky,
+                    size: 22,
+                  ),
+                ),
+
+                const SizedBox(width: 14),
+
+                // Workspace Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (onEdit != null || onDelete != null)
-                        PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert, color: iconColor),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          onSelected: (val) {
-                            if (val == 'edit') onEdit?.call();
-                            if (val == 'delete') onDelete?.call();
-                          },
-                          itemBuilder: (ctx) => [
-                            if (onEdit != null)
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit_outlined, size: 18, color: AppColors.textPrimary),
-                                    SizedBox(width: 8),
-                                    Text('Edit Workspace'),
-                                  ],
-                                ),
-                              ),
-                            if (onDelete != null)
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                                    SizedBox(width: 8),
-                                    Text('Delete', style: TextStyle(color: AppColors.error)),
-                                  ],
-                                ),
-                              ),
-                          ],
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontFamily: WorkspaceTheme.fontFamily,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                          color: WorkspaceTheme.textPrimary,
+                          letterSpacing: -0.3,
                         ),
-                      CircleAvatar(
-                        backgroundColor: iconColor,
-                        child: const Icon(Icons.chevron_right, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: WorkspaceTheme.accentLight,
+                              borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
+                              border: Border.all(color: WorkspaceTheme.accentBorder.withValues(alpha: 0.6)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.layers_outlined,
+                                  size: 12,
+                                  color: WorkspaceTheme.accentSky,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$subjectCount ${subjectCount == 1 ? "Subject" : "Subjects"}',
+                                  style: const TextStyle(
+                                    fontFamily: WorkspaceTheme.fontFamily,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: WorkspaceTheme.accentSky,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Actions: Three-dot menu and Chevron
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onEdit != null || onDelete != null)
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: WorkspaceTheme.textMuted,
+                          size: 20,
+                        ),
+                        splashRadius: 18,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: WorkspaceTheme.borderSubtle),
+                        ),
+                        elevation: 4,
+                        shadowColor: WorkspaceTheme.primaryDark.withValues(alpha: 0.08),
+                        onSelected: (value) {
+                          if (value == 'edit') onEdit?.call();
+                          if (value == 'delete') onDelete?.call();
+                        },
+                        itemBuilder: (context) => [
+                          if (onEdit != null)
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 17, color: WorkspaceTheme.textPrimary),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Edit Workspace',
+                                    style: TextStyle(
+                                      fontFamily: WorkspaceTheme.fontFamily,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: WorkspaceTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (onDelete != null)
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline_rounded, size: 17, color: WorkspaceTheme.error),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Delete Workspace',
+                                    style: TextStyle(
+                                      fontFamily: WorkspaceTheme.fontFamily,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: WorkspaceTheme.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: WorkspaceTheme.surfaceSubtle,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: WorkspaceTheme.borderSubtle),
+                      ),
+                      child: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: WorkspaceTheme.textTertiary,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+

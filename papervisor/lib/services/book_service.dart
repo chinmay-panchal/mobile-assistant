@@ -4,6 +4,24 @@ import '../services/api_client.dart';
 class BookService {
   final ApiClient _apiClient = ApiClient();
 
+  Future<List<Map<String, dynamic>>> getAllBooks() async {
+    final response = await _apiClient.get('/books');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      try {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to load books');
+      } catch (e) {
+        if (e is FormatException) {
+          throw Exception('An unexpected server error occurred.');
+        }
+        rethrow;
+      }
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getBooks(String subjectId) async {
     final response = await _apiClient.get('/subjects/$subjectId/books');
     if (response.statusCode == 200) {

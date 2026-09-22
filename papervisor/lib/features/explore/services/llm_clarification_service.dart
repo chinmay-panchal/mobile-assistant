@@ -466,23 +466,30 @@ Return JSON:
     try {
       final config = GenerationConfig(responseMimeType: 'application/json');
       const systemPrompt = '''
-You are an expert exam paper verifier.
-The user wanted to download a question paper for: "\$prompt"
-We have downloaded a PDF. You must inspect the PDF and determine if it is a full, complete question paper for the exact exam requested.
-Criteria for rejection (isComplete = false):
-1. It is only a syllabus, brochure, or informational pamphlet.
-2. It is a partial excerpt (e.g., only "Part 1" or just "Physics" when the exam has multiple subjects).
-3. If the paper states it contains a specific number of questions (e.g., 75 or 100), but the document visibly ends after 10 or 15 questions.
-4. It is just an answer key with no questions.
-5. Some documents are free previews that only show the first page or two of real content, with the remaining pages being promotional material telling the reader to download an app, subscribe, or pay to unlock the rest. If ANY page past the first contains app-download prompts, subscription upsells, watermarks-only, or 'unlock full solution' messaging instead of actual exam questions, mark isComplete: false and say why in the reason.
-6. The document is clearly for a DIFFERENT year or a DIFFERENT subject than what the user explicitly requested in their prompt.
-7. It is an official Sample Question Paper (SQP), specimen paper, model paper, or mock/practice paper released by the exam board BEFORE the actual exam to illustrate format and pattern — even if it looks complete, well-formatted, and comes from an official source. Look for markers like "Sample Question Paper," "SQP," "Specimen," or a stated academic year range like "2025-26" (spanning two years signals a pattern-setting document for the upcoming session, not a completed exam from a single past year). This must be rejected unless the user's prompt explicitly asked for a sample/practice paper.
-8. It is a "Pre-Board" exam, school preliminary test, or school internal practice test (e.g. titled "Pre-Board Examination", "Pre-Board", "Preliminary Exam") conducted by an individual school rather than an official centralized board examination paper, unless the user explicitly requested a pre-board paper.
+You are an expert exam paper verifier for Indian competitive exams (JEE, NEET, CBSE boards, etc.).
+We have downloaded a PDF that a user wants. You must decide if it is a COMPLETE question paper.
 
-Criteria for acceptance (isComplete = true):
-- It contains the complete set of questions expected for this exam.
-- Minor missing pages at the very end (like a missing rough work page) are acceptable, but all questions must be present.
-- The exam name, subject, and year (if specified) match the user's prompt.
+IMPORTANT CONTEXT — DO NOT GET CONFUSED BY THESE:
+- "Memory-based paper": In India, coaching institutes like eSaral, Allen, Resonance, Vedantu etc. publish papers reconstructed from students' memories immediately after an exam. These are labeled "Memory Based Paper" or "Memory Based Questions". This does NOT mean the questions are missing — it means the source of the questions is student recall. A memory-based paper is still a COMPLETE question paper and must be ACCEPTED if it contains all the expected questions.
+- "Solutions at the end": Many official and coaching-institute papers include full solutions, hints, or an answer key AFTER all the questions. A paper with questions followed by solutions is COMPLETE. Only reject if the document is ONLY solutions/answers with no questions at all.
+- Rough page / blank pages at the end: Acceptable. Do not reject for this.
+
+REJECTION CRITERIA (isComplete = false):
+1. It is only a syllabus, brochure, admissions notice, or informational pamphlet — contains zero actual exam questions.
+2. It is a partial excerpt (e.g., only the Physics section when the full exam covers Physics + Chemistry + Math, and the user asked for the full paper). If each section appears to be present, do NOT reject even if page counts vary.
+3. The paper explicitly states it has N questions (e.g., 90 MCQs) but the document visibly ends far short of that count (e.g., only 10–15 questions present and then the PDF ends abruptly).
+4. It is ONLY an answer key or ONLY a solution booklet with absolutely no question text present anywhere in the document.
+5. It is a free-preview stub: first 1–2 pages show real questions but remaining pages are promotional content (app-download prompts, subscription upsells, "unlock full paper" messaging, watermarks covering all content). Reject only if the majority of real content is locked/replaced by promotional material.
+6. The document is clearly for a DIFFERENT year or DIFFERENT subject/exam than what the user explicitly requested (e.g., user asked for 2024 but paper is clearly labeled 2019 throughout).
+7. It is an official Sample Question Paper (SQP), specimen paper, or model paper released by the exam board BEFORE the actual exam to set the pattern — NOT the actual past year paper. Markers: "Sample Question Paper", "SQP", "Specimen", academic year range like "2025-26" (two-year range = upcoming session pattern paper). Reject UNLESS the user's prompt explicitly asked for a sample paper.
+8. It is a "Pre-Board", school preliminary test, or internal school examination conducted by a single school — not a centralized board/national exam paper. Reject UNLESS the user explicitly asked for a pre-board paper.
+
+ACCEPTANCE CRITERIA (isComplete = true):
+- The document contains the expected questions for this exam, even if reconstructed from memory.
+- Questions from all expected sections/subjects are present (they don't need to be in a specific order).
+- Solutions, hints, or an answer key appearing AFTER the questions does not make it incomplete.
+- Minor formatting differences, watermarks from coaching institutes, or publisher branding do not make it incomplete.
+- The exam name, subject, and year (if specified by the user) roughly match what's in the document.
 
 Return a JSON object strictly in this format:
 {

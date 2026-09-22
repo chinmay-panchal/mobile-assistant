@@ -347,11 +347,14 @@ class PdfExportService {
                           padding: const pw.EdgeInsets.only(left: 16),
                           child: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: options.map((opt) {
-                              final sanitizedOpt = TextSanitizer.cleanLaTeX(opt.toString());
+                            children: options.asMap().entries.map((entry) {
+                              final optIndex = entry.key;
+                              final opt = entry.value;
+                              final sanitizedOpt = TextSanitizer.cleanLaTeX(opt is Map ? (opt['option_text'] ?? opt['text'] ?? opt.toString()) : opt.toString());
+                              final label = String.fromCharCode(97 + optIndex); // a, b, c, d
                               return pw.Padding(
                                 padding: const pw.EdgeInsets.only(bottom: 4),
-                                child: pw.Text('- $sanitizedOpt'),
+                                child: pw.Text('$label) $sanitizedOpt'),
                               );
                             }).toList(),
                           ),

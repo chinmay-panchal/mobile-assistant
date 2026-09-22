@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/primary_button.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../auth/theme/auth_theme.dart';
+import '../../auth/widgets/auth_primary_button.dart';
+import '../../auth/widgets/auth_text_field.dart';
+import 'package:pdf/pdf.dart';
+import '../../../../core/utils/pdf_preview_helper.dart';
+import '../../../../services/pdf_export_service.dart';
 import '../../../../services/reference_paper_service.dart';
 import '../../../../services/paper_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/paper_wizard_state.dart';
+import '../widgets/wizard_bottom_bar.dart';
+import '../widgets/wizard_step_header.dart';
 import 'paper_wizard_step_difficulty.dart';
 import 'pdf_preview_screen.dart';
+import 'saved_pdf_viewer_screen.dart';
 
 class PaperWizardStepReference extends StatefulWidget {
   final Map<String, dynamic> subject;
   final PaperWizardState state;
 
-  const PaperWizardStepReference({Key? key, required this.subject, required this.state}) : super(key: key);
+  const PaperWizardStepReference({super.key, required this.subject, required this.state});
 
   @override
   State<PaperWizardStepReference> createState() => _PaperWizardStepReferenceState();
@@ -33,6 +40,8 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
   final TextEditingController _titleCtrl = TextEditingController();
   final TextEditingController _yearCtrl = TextEditingController();
   final TextEditingController _examTypeCtrl = TextEditingController();
+  String? _pickedFileName;
+  String? _pickedFilePath;
 
   @override
   void initState() {
@@ -69,30 +78,48 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
     }
   }
 
-  Future<void> _pickAndUpload() async {
-    final title = _titleCtrl.text.trim();
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a title first.')));
-      return;
-    }
-
+  Future<void> _pickFile() async {
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-        withData: false,
-        withReadStream: false,
       );
-      if (result == null || result.isEmpty) return;
+      if (result.isEmpty) return;
       final picked = result.first;
       if (picked.path == null) return;
 
-      setState(() => _uploading = true);
+      setState(() {
+        _pickedFilePath = picked.path;
+        _pickedFileName = picked.name;
+        if (_titleCtrl.text.trim().isEmpty) {
+          _titleCtrl.text = picked.name.replaceAll('.pdf', '');
+        }
+      });
+    } catch (_) {}
+  }
 
+  Future<void> _uploadPickedFile() async {
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a title for the reference paper.')),
+      );
+      return;
+    }
+    if (_pickedFilePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a PDF file first.')),
+      );
+      return;
+    }
+
+    setState(() => _uploading = true);
+
+    try {
       final uploaded = await _refService.uploadReferencePaper(
         subjectId: widget.subject['id'],
         title: title,
-        filePath: picked.path!,
+        filePath: _pickedFilePath!,
         year: int.tryParse(_yearCtrl.text.trim()),
         examType: _examTypeCtrl.text.trim().isEmpty ? null : _examTypeCtrl.text.trim(),
       );
@@ -100,312 +127,623 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       if (mounted) {
         setState(() {
           _uploading = false;
-          // auto-select the uploaded paper
           widget.state.referencePaperId = uploaded['id'];
           _titleCtrl.clear();
           _yearCtrl.clear();
           _examTypeCtrl.clear();
+          _pickedFileName = null;
+          _pickedFilePath = null;
         });
-        // refresh library and switch to library tab
         await _fetchPapers();
+        if (!mounted) return;
         _tabController.animateTo(0);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reference paper uploaded!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reference paper uploaded and selected!')),
+        );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _uploading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final hasSelectedRef = widget.state.referencePaperId != null;
+
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Step 3 of 5', style: theme.textTheme.bodySmall),
-          Text('Reference', style: theme.textTheme.titleLarge),
-        ]),
-        centerTitle: false,
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Column(children: [
-          _buildProgressBar(),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('REFERENCE PAPER', style: theme.textTheme.labelLarge?.copyWith(fontSize: 12, letterSpacing: 1.2)),
-                const SizedBox(height: 4),
-                const Text('Optional — helps guide format and question style', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                const SizedBox(height: 20),
-                // Tab bar
+        bottom: false,
+        child: Column(
+          children: [
+            // Top Step Header (No back arrow)
+            WizardStepHeader(
+              subjectName: widget.subject['name'] ?? 'Subject',
+              currentStep: 3,
+              title: 'Reference Paper',
+              subtitle: 'Select an optional blueprint or skip for custom format',
+            ),
+
+            // Segmented Tab Bar
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: AuthTheme.primary,
+                unselectedLabelColor: AuthTheme.textSecondary,
+                labelStyle: const TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                dividerColor: Colors.transparent,
+                tabs: const [
+                  Tab(text: 'Reference Library'),
+                  Tab(text: 'Upload New PDF'),
+                ],
+              ),
+            ),
+
+            // Tab Views
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Library
+                  _loadingPapers
+                      ? const Center(
+                          child: CircularProgressIndicator(color: AuthTheme.primary),
+                        )
+                      : (_refPapers.isEmpty && _aiPapers.isEmpty)
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 54,
+                                      height: 54,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: const Icon(
+                                        Icons.description_outlined,
+                                        color: AuthTheme.textTertiary,
+                                        size: 26,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'No Reference Papers Yet',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: AuthTheme.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Upload a previous exam paper or continue in custom format mode.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 12,
+                                        color: AuthTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (_refPapers.isNotEmpty) ...[
+                                    const Text(
+                                      'PAST REFERENCE PAPERS',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.1,
+                                        color: AuthTheme.textTertiary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    ..._refPapers.map((p) => _buildPaperCard(p, isAi: false)),
+                                  ],
+
+                                  if (_aiPapers.isNotEmpty) ...[
+                                    const SizedBox(height: 18),
+                                    const Text(
+                                      'PREVIOUSLY GENERATED PAPERS',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.1,
+                                        color: AuthTheme.textTertiary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    ..._aiPapers.map((p) => _buildPaperCard(p, isAi: true)),
+                                  ],
+                                ],
+                              ),
+                            ),
+
+                  // Tab 2: Upload PDF
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // PDF Drop / Pick Area
+                        InkWell(
+                          onTap: _uploading ? null : _pickFile,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: _pickedFileName != null ? const Color(0xFFF0FDF4) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _pickedFileName != null ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: _pickedFileName != null
+                                        ? const Color(0xFFDCFCE7)
+                                        : const Color(0xFFEEF2FF),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Icon(
+                                    _pickedFileName != null
+                                        ? Icons.picture_as_pdf_rounded
+                                        : Icons.cloud_upload_outlined,
+                                    color: _pickedFileName != null
+                                        ? const Color(0xFF16A34A)
+                                        : AuthTheme.primary,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _pickedFileName ?? 'Tap to select reference PDF',
+                                  style: TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: _pickedFileName != null
+                                        ? const Color(0xFF16A34A)
+                                        : AuthTheme.textPrimary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _pickedFileName != null
+                                      ? 'File selected · Tap to replace'
+                                      : 'Supports standard PDF documents (max 50MB)',
+                                  style: const TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    fontSize: 12,
+                                    color: AuthTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Form Inputs
+                        AuthTextField(
+                          label: 'Paper Title *',
+                          hintText: 'e.g. CBSE Class 10 Board Exam 2024',
+                          controller: _titleCtrl,
+                          prefixIcon: Icons.title_rounded,
+                        ),
+                        const SizedBox(height: 14),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: AuthTextField(
+                                label: 'Year',
+                                hintText: 'e.g. 2024',
+                                controller: _yearCtrl,
+                                prefixIcon: Icons.calendar_today_outlined,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 3,
+                              child: AuthTextField(
+                                label: 'Exam Type',
+                                hintText: 'e.g. Midterm / Annual',
+                                controller: _examTypeCtrl,
+                                prefixIcon: Icons.bookmark_border_rounded,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Upload Button
+                        AuthPrimaryButton(
+                          text: 'Upload & Select Paper',
+                          icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 18),
+                          isLoading: _uploading,
+                          onPressed: _pickedFilePath != null && !_uploading ? _uploadPickedFile : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Bottom Action Bar
+            WizardBottomBar(
+              text: hasSelectedRef ? 'Continue' : 'Continue (Custom Mode)',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaperWizardStepDifficulty(
+                      subject: widget.subject,
+                      state: widget.state,
+                    ),
+                  ),
+                );
+              },
+              helperWidget: hasSelectedRef
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle_rounded, color: AuthTheme.success, size: 18),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Reference paper selected as exam blueprint',
+                              style: TextStyle(
+                                fontFamily: AuthTheme.fontFamily,
+                                color: Color(0xFF065F46),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => setState(() => widget.state.referencePaperId = null),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Clear',
+                              style: TextStyle(
+                                fontFamily: AuthTheme.fontFamily,
+                                color: AuthTheme.error,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _previewPaper(Map<String, dynamic> paper, {bool isAi = false}) async {
+    final title = (paper['title'] ?? 'Paper Preview').toString();
+    final pdfUrl = (paper['pdf_url'] ?? paper['file_url'])?.toString();
+
+    // 1. If static PDF file is available, preview via remote PDF helper
+    if (pdfUrl != null && pdfUrl.trim().isNotEmpty) {
+      await PdfPreviewHelper.openRemotePdf(
+        context,
+        urlPath: pdfUrl,
+        title: title,
+      );
+      return;
+    }
+
+    // 2. Pure JSON paper (AI generated): render PDF on-the-fly and display
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(
+          color: AuthTheme.textPrimary,
+          strokeWidth: 2.5,
+        ),
+      ),
+    );
+
+    try {
+      Map<String, dynamic> fullPaper = Map<String, dynamic>.from(paper);
+      // If questions are missing from the list item, fetch full paper object
+      if (fullPaper['questions'] == null && fullPaper['id'] != null) {
+        try {
+          final fetched = await _paperService.getPaper(fullPaper['id'].toString());
+          fullPaper = fetched;
+        } catch (_) {}
+      }
+
+      final bytes = await PdfExportService.generatePaperPdf(
+        PdfPageFormat.a4,
+        widget.subject,
+        fullPaper,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Dismiss loading dialog
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SavedPdfViewerScreen(
+            pdfBytes: bytes,
+            title: title,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Dismiss loading dialog
+
+      // Fallback: If on-the-fly byte generation throws, open read-only PdfPreviewScreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PdfPreviewScreen(
+            subject: widget.subject,
+            paper: paper,
+            isReadOnly: true,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildPaperCard(Map<String, dynamic> paper, {bool isAi = false}) {
+    final id = paper['id'] as String;
+    final isSelected = widget.state.referencePaperId == id;
+    final title = paper['title'] ?? 'Untitled Paper';
+    final year = paper['year'];
+    final examType = paper['exam_type'];
+    final totalMarks = paper['total_marks'];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? AuthTheme.primary : const Color(0xFFE2E8F0),
+          width: isSelected ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isSelected
+                ? AuthTheme.primary.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                widget.state.referencePaperId = null;
+              } else {
+                widget.state.referencePaperId = id;
+              }
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Row(
+              children: [
+                // Icon badge
                 Container(
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-                  padding: const EdgeInsets.all(4),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    indicator: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: AppColors.textTertiary,
-                    tabs: const [
-                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.collections_bookmark, size: 16), SizedBox(width: 8),
-                        Text('From Library', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ])),
-                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.upload, size: 16), SizedBox(width: 8),
-                        Text('Upload New', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ])),
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isAi ? const Color(0xFFF1F5F9) : const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isAi ? const Color(0xFFE2E8F0) : const Color(0xFFFECACA),
+                    ),
+                  ),
+                  child: Icon(
+                    isAi ? Icons.auto_awesome_rounded : Icons.picture_as_pdf_rounded,
+                    color: isAi ? AuthTheme.textPrimary : const Color(0xFFDC2626),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Title and Metadata Tags
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected ? AuthTheme.primary : AuthTheme.textPrimary,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          if (year != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '$year',
+                                style: const TextStyle(
+                                  fontFamily: AuthTheme.fontFamily,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AuthTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (totalMarks != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '$totalMarks Marks',
+                                style: const TextStyle(
+                                  fontFamily: AuthTheme.fontFamily,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AuthTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (examType != null && examType.toString().isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEEF2FF),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                examType.toString(),
+                                style: const TextStyle(
+                                  fontFamily: AuthTheme.fontFamily,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AuthTheme.primary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [_buildLibraryTab(), _buildUploadTab()],
+
+                // Preview Paper in-app (Available for ALL papers: PDF or JSON)
+                IconButton(
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    size: 20,
+                    color: AuthTheme.textPrimary,
                   ),
+                  tooltip: 'Preview Paper',
+                  onPressed: () => _previewPaper(paper, isAi: isAi),
                 ),
-                const SizedBox(height: 16),
-                // Info box
+
+                // Radio Selection indicator
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 22,
+                  height: 22,
                   decoration: BoxDecoration(
-                    color: AppColors.warningLight.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(16),
+                    color: isSelected ? AuthTheme.primary : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? AuthTheme.primary : const Color(0xFFCBD5E1),
+                      width: 1.5,
+                    ),
                   ),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Icon(Icons.lightbulb_outline, color: AppColors.warning, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(child: RichText(text: const TextSpan(
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 13, height: 1.5),
-                      children: [
-                        TextSpan(text: 'This step is ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: 'optional', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.warning)),
-                        TextSpan(text: '. When provided, AI will mirror the reference paper\'s format — no need to configure question types manually.'),
-                      ],
-                    ))),
-                  ]),
+                  child: isSelected
+                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
+                      : null,
                 ),
-              ]),
+              ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(children: [
-              if (widget.state.referencePaperId != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(children: [
-                    const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                    const SizedBox(width: 8),
-                    const Text('Reference paper selected', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 13)),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => setState(() => widget.state.referencePaperId = null),
-                      child: const Text('Clear', style: TextStyle(color: AppColors.error)),
-                    ),
-                  ]),
-                ),
-              PrimaryButton(
-                text: 'Continue',
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => PaperWizardStepDifficulty(subject: widget.subject, state: widget.state),
-                  ));
-                },
-              ),
-            ]),
-          ),
-        ]),
+        ),
       ),
-    );
-  }
-
-  Widget _buildLibraryTab() {
-    if (_loadingPapers) return const Center(child: CircularProgressIndicator());
-    if (_refPapers.isEmpty && _aiPapers.isEmpty) {
-      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.insert_drive_file_outlined, size: 48, color: AppColors.textTertiary.withOpacity(0.4)),
-        const SizedBox(height: 12),
-        const Text('No papers found', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        const Text('Upload a past-year paper or generate one with AI', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-      ]));
-    }
-
-    final combinedList = [
-      ..._refPapers.map((p) => {...p, 'is_ai': false}),
-      ..._aiPapers.map((p) => {...p, 'is_ai': true}),
-    ];
-
-    return ListView.builder(
-      itemCount: combinedList.length,
-      itemBuilder: (context, index) {
-        final paper = combinedList[index];
-        final isSelected = widget.state.referencePaperId == paper['id'];
-        final isAi = paper['is_ai'] == true;
-
-        return GestureDetector(
-          onTap: () => setState(() {
-            widget.state.referencePaperId = isSelected ? null : paper['id'];
-          }),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isSelected ? AppColors.primary : AppColors.divider, width: isSelected ? 2 : 1),
-            ),
-            child: Row(children: [
-              CircleAvatar(
-                backgroundColor: isAi ? const Color(0xFF9333EA).withOpacity(0.1) : AppColors.divider.withOpacity(0.4),
-                child: Icon(isAi ? Icons.auto_awesome : Icons.insert_drive_file_outlined,
-                  color: isAi ? const Color(0xFF9333EA) : AppColors.textTertiary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(paper['title'] ?? 'Reference Paper',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isSelected ? AppColors.primary : AppColors.textPrimary)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(children: [
-                  if (paper['year'] != null) ...[
-                    Text('${paper['year']}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('•', style: TextStyle(color: AppColors.textTertiary, fontSize: 12))),
-                  ],
-                  if (paper['exam_type'] != null)
-                    Text('${paper['exam_type']}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  if (isAi && paper['total_marks'] != null)
-                    Text('${paper['total_marks']} marks', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                ]),
-              ])),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.remove_red_eye, color: AppColors.textSecondary),
-                onPressed: () async {
-                  if (isAi) {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => PdfPreviewScreen(subject: widget.subject, paper: paper),
-                    ));
-                  } else {
-                    final urlPath = paper['file_url'];
-                    if (urlPath != null) {
-                      final uri = Uri.parse('https://revisit-humongous-wiry.ngrok-free.dev$urlPath');
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
-                    }
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-              Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                color: isSelected ? AppColors.primary : AppColors.divider),
-            ]),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildUploadTab() {
-    return SingleChildScrollView(
-      child: Column(children: [
-        TextField(
-          controller: _titleCtrl,
-          decoration: InputDecoration(
-            labelText: 'Paper Title *',
-            hintText: 'e.g. Board Exam 2023',
-            filled: true, fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.divider)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(child: TextField(
-            controller: _yearCtrl,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Year (optional)',
-              filled: true, fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.divider)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-            ),
-          )),
-          const SizedBox(width: 12),
-          Expanded(child: TextField(
-            controller: _examTypeCtrl,
-            decoration: InputDecoration(
-              labelText: 'Exam Type (optional)',
-              hintText: 'e.g. CBSE',
-              filled: true, fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.divider)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-            ),
-          )),
-        ]),
-        const SizedBox(height: 20),
-        GestureDetector(
-          onTap: _uploading ? null : _pickAndUpload,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: _uploading
-                ? const Column(children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Uploading…', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                  ])
-                : Column(children: [
-                    CircleAvatar(
-                      backgroundColor: AppColors.primaryLight.withOpacity(0.1),
-                      radius: 24,
-                      child: const Icon(Icons.upload, color: AppColors.primary),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Tap to select PDF', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 6),
-                    const Text('PDF format only', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  ]),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildProgressBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(children: List.generate(5, (i) => Expanded(
-        child: Container(
-          margin: EdgeInsets.only(right: i == 4 ? 0 : 8),
-          height: 4,
-          decoration: BoxDecoration(
-            color: i <= 2 ? AppColors.primary : AppColors.divider,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-      ))),
     );
   }
 }

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="wsBgGrad" x1="40" y1="20" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EEF2FF" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#ECFDF5" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FDF2F8" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="folderBack" x1="80" y1="60" x2="220" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="folderFront" x1="80" y1="80" x2="220" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="mintAccent" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="orangeAccent" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient pastel background blob -->
+  <path d="M70 50C45 95 80 160 145 180C210 200 265 155 270 100C275 45 215 20 155 25C95 30 95 10 70 50Z" fill="url(#wsBgGrad)"/>
+
+  <!-- Orbit rings & Sparkles -->
+  <circle cx="260" cy="50" r="14" stroke="#C7D2FE" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <circle cx="55" cy="140" r="10" stroke="#BAE6FD" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+  <circle cx="70" cy="65" r="4" fill="#F472B6"/>
+  <circle cx="250" cy="145" r="4.5" fill="#38BDF8"/>
+  <path d="M265 110L267 114L271 116L267 118L265 122L263 118L259 116L263 114Z" fill="#FBBF24"/>
+  <path d="M60 95L62 99L66 101L62 103L60 107L58 103L54 101L58 99Z" fill="#818CF8"/>
+
+  <!-- Shadow below folder -->
+  <ellipse cx="160" cy="165" rx="75" ry="12" fill="#4F46E5" fill-opacity="0.08"/>
+
+  <!-- Back Folder Tab -->
+  <path d="M96 66C96 60.4772 100.477 56 106 56H140L152 68H214C219.523 68 224 72.4772 224 78V140H96V66Z" fill="url(#folderBack)"/>
+
+  <!-- Paper sheets peeking out -->
+  <rect x="110" y="46" width="90" height="70" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.2" transform="rotate(-4 110 46)"/>
+  <rect x="118" y="58" width="50" height="4" rx="2" fill="#CBD5E1" transform="rotate(-4 110 46)"/>
+  <rect x="118" y="66" width="35" height="4" rx="2" fill="#E2E8F0" transform="rotate(-4 110 46)"/>
+
+  <rect x="120" y="50" width="85" height="70" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.2" transform="rotate(3 120 50)"/>
+  <rect x="128" y="62" width="45" height="4" rx="2" fill="#818CF8" transform="rotate(3 120 50)"/>
+  <rect x="128" y="70" width="60" height="4" rx="2" fill="#CBD5E1" transform="rotate(3 120 50)"/>
+
+  <!-- Front Folder Body -->
+  <path d="M90 84C90 77.3726 95.3726 72 102 72H218C224.627 72 230 77.3726 230 84V146C230 152.627 224.627 158 218 158H102C95.3726 158 90 152.627 90 146V84Z" fill="url(#folderFront)" stroke="#EEF2FF" stroke-width="1.5"/>
+
+  <!-- Center Plus / Create Icon on Folder -->
+  <circle cx="160" cy="115" r="18" fill="#EEF2FF"/>
+  <path d="M160 106V124M151 115H169" stroke="#4F46E5" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Left Floating Badge: Subjects Badge -->
+  <g>
+    <rect x="66" y="104" width="38" height="38" rx="12" fill="#000000" fill-opacity="0.04"/>
+    <rect x="64" y="100" width="38" height="38" rx="12" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="83" cy="119" r="11" fill="#ECFDF5"/>
+    <path d="M78 116L83 113L88 116V122L83 125L78 122V116Z" fill="url(#mintAccent)"/>
+  </g>
+
+  <!-- Right Floating Badge: Star Badge -->
+  <g>
+    <rect x="220" y="96" width="38" height="38" rx="12" fill="#000000" fill-opacity="0.04"/>
+    <rect x="218" y="92" width="38" height="38" rx="12" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1.5"/>
+    <circle cx="237" cy="111" r="11" fill="#FEF3C7"/>
+    <path d="M237 104L239 108L243 109L240 112L241 116L237 114L233 116L234 112L231 109L235 108Z" fill="url(#orangeAccent)"/>
+  </g>
+</svg>

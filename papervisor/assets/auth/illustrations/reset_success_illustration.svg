@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="bgGrad5" x1="40" y1="20" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ECFDF5" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#EEF2FF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FDF2F8" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="greenShieldGrad" x1="120" y1="35" x2="200" y2="155" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient pastel blob -->
+  <path d="M70 50C45 95 80 160 145 180C210 200 265 155 270 100C275 45 215 20 155 25C95 30 95 10 70 50Z" fill="url(#bgGrad5)"/>
+
+  <!-- Confetti sparkles -->
+  <circle cx="65" cy="65" r="4" fill="#F472B6"/>
+  <circle cx="255" cy="55" r="4.5" fill="#FBBF24"/>
+  <circle cx="260" cy="140" r="5" fill="#60A5FA"/>
+  <circle cx="75" cy="145" r="3.5" fill="#A78BFA"/>
+  <path d="M85 95L88 101L94 103L88 105L85 111L83 105L77 103L83 101Z" fill="#FBBF24"/>
+  <path d="M235 75L237 81L243 83L237 85L235 91L233 85L227 83L233 81Z" fill="#38BDF8"/>
+
+  <!-- Big Celebratory Checkmark Shield -->
+  <g>
+    <!-- Soft shadow -->
+    <path d="M162 42L212 62V112C212 144 187 169 162 178C137 169 112 144 112 112V62L162 42Z" fill="#059669" fill-opacity="0.10"/>
+    <path d="M160 38L210 58V108C210 140 185 165 160 174C135 165 110 140 110 108V58L160 38Z" fill="url(#greenShieldGrad)"/>
+    <!-- Outer Shield Rim Highlight -->
+    <path d="M160 44L204 62V108C204 136 182 158 160 167C138 158 116 136 116 108V62L160 44Z" stroke="#A7F3D0" stroke-width="2" fill="none"/>
+    <!-- Bold White Checkmark -->
+    <path d="M142 106L154 118L180 92" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Left Star Badge -->
+  <g>
+    <circle cx="85" cy="120" r="18" fill="#FFFFFF"/>
+    <circle cx="85" cy="120" r="12" fill="#FEF3C7"/>
+    <path d="M85 112L87 117L92 118L88 122L89 127L85 124L81 127L82 122L78 118L83 117Z" fill="#F59E0B"/>
+  </g>
+
+  <!-- Right Thumbs Up / Heart Badge -->
+  <g>
+    <circle cx="235" cy="115" r="18" fill="#FFFFFF"/>
+    <circle cx="235" cy="115" r="12" fill="#FDF2F8"/>
+    <path d="M235 119C235 119 230 115.5 230 113C230 111.5 231 110.5 232.5 110.5C233.5 110.5 234.5 111 235 112C235.5 111 236.5 110.5 237.5 110.5C239 110.5 240 111.5 240 113C240 115.5 235 119 235 119Z" fill="#EC4899"/>
+  </g>
+</svg>

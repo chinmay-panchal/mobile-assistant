@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="bookBgGrad" x1="40" y1="20" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF6FF" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#E0E7FF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#EDE9FE" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="mainBookGrad" x1="110" y1="70" x2="210" y2="155" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#3730A3"/>
+    </linearGradient>
+    <linearGradient id="secBookGrad" x1="80" y1="120" x2="180" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+    <linearGradient id="accentBadgeGrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background blob -->
+  <path d="M70 50C45 95 80 160 145 180C210 200 265 155 270 100C275 45 215 20 155 25C95 30 95 10 70 50Z" fill="url(#bookBgGrad)"/>
+
+  <!-- Orbits & Sparkles -->
+  <circle cx="260" cy="55" r="12" stroke="#C7D2FE" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <circle cx="65" cy="135" r="8" stroke="#BAE6FD" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+  <circle cx="75" cy="65" r="4" fill="#6366F1"/>
+  <circle cx="250" cy="140" r="4" fill="#38BDF8"/>
+  <path d="M260 105L262 109L266 111L262 113L260 117L258 113L254 111L258 109Z" fill="#FBBF24"/>
+  <path d="M62 90L64 94L68 96L64 98L62 102L60 98L56 96L60 94Z" fill="#818CF8"/>
+
+  <!-- Shadow beneath stack -->
+  <ellipse cx="160" cy="165" rx="70" ry="10" fill="#4F46E5" fill-opacity="0.08"/>
+
+  <!-- Stacked Bottom Book -->
+  <rect x="90" y="132" width="140" height="26" rx="6" fill="url(#secBookGrad)"/>
+  <path d="M96 136H224C226 136 228 138 228 140V148C228 150 226 152 224 152H96C94 152 92 150 92 148V140C92 138 94 136 96 136Z" fill="#F8FAFC"/>
+  <line x1="90" y1="145" x2="230" y2="145" stroke="#BAE6FD" stroke-width="1" stroke-opacity="0.6"/>
+
+  <!-- Top Open/Leaning Book -->
+  <rect x="110" y="70" width="100" height="66" rx="8" fill="url(#mainBookGrad)"/>
+  <rect x="118" y="76" width="84" height="54" rx="5" fill="#FFFFFF"/>
+  <rect x="126" y="86" width="40" height="3" rx="1.5" fill="#C7D2FE"/>
+  <rect x="126" y="93" width="60" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="126" y="100" width="52" height="3" rx="1.5" fill="#E2E8F0"/>
+  <rect x="126" y="107" width="36" height="3" rx="1.5" fill="#E2E8F0"/>
+  <line x1="158" y1="76" x2="158" y2="130" stroke="#EEF2FF" stroke-width="2"/>
+
+  <!-- Bookmark Ribbon -->
+  <path d="M152 70V88L158 83L164 88V70H152Z" fill="#F43F5E"/>
+
+  <!-- Floating Green Check / Star Badge -->
+  <g transform="translate(205, 62)">
+    <rect width="36" height="36" rx="12" fill="url(#accentBadgeGrad)"/>
+    <path d="M12 18L16 22L24 14" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
