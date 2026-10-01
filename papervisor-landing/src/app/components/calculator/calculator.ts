@@ -310,20 +310,20 @@ export class CalculatorComponent {
   currency = signal<'USD' | 'INR'>('USD');
   currencySymbol = computed(() => this.currency() === 'USD' ? '$' : '₹');
 
-  dailySalary = signal(200);
+  dailySalary = signal(5);
 
-  minSalary = computed(() => this.currency() === 'USD' ? 50 : 500);
-  maxSalary = computed(() => this.currency() === 'USD' ? 1000 : 10000);
-  midSalary = computed(() => this.currency() === 'USD' ? 250 : 2500);
-  salaryStep = computed(() => this.currency() === 'USD' ? 10 : 100);
+  minSalary = computed(() => this.currency() === 'USD' ? 5 : 500);
+  maxSalary = computed(() => this.currency() === 'USD' ? 100 : 10000);
+  midSalary = computed(() => this.currency() === 'USD' ? 25 : 2500);
+  salaryStep = computed(() => this.currency() === 'USD' ? 1 : 100);
 
   toggleCurrency() {
     if (this.currency() === 'USD') {
       this.currency.set('INR');
-      this.dailySalary.set(2000);
+      this.dailySalary.set(500);
     } else {
       this.currency.set('USD');
-      this.dailySalary.set(200);
+      this.dailySalary.set(5);
     }
   }
 
