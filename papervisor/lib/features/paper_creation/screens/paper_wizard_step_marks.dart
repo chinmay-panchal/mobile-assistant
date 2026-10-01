@@ -47,14 +47,18 @@ class _PaperWizardStepMarksState extends State<PaperWizardStepMarks> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         bottom: false,
-        child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 860),
+            child: Column(
           children: [
-            // Top Step Header (No back arrow)
+            // Top Step Header
             WizardStepHeader(
               subjectName: widget.subject['name'] ?? 'Subject',
               currentStep: 2,
               title: 'Total Marks',
               subtitle: 'Define the total marks for your examination paper',
+              onBack: () => Navigator.pop(context),
             ),
 
             // Main Content Area
@@ -299,6 +303,8 @@ class _PaperWizardStepMarksState extends State<PaperWizardStepMarks> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

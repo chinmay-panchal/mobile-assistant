@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../services/book_service.dart';
 import '../../../../services/subject_service.dart';
 import '../widgets/add_subject_tile.dart';
@@ -140,15 +141,33 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
   @override
   Widget build(BuildContext context) {
     final workspaceName = widget.workspace['name'] as String? ?? 'Workspace';
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final hPadding = isDesktop ? 36.0 : (isTablet ? 28.0 : 20.0);
+    final crossAxisCount = Responsive.value(
+      context: context,
+      mobile: 2,
+      tablet: 3,
+      desktop: 4,
+    );
+    final childAspectRatio = Responsive.value(
+      context: context,
+      mobile: 1.05,
+      tablet: 1.12,
+      desktop: 1.15,
+    );
 
     return Scaffold(
       backgroundColor: AuthTheme.background,
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _fetchSubjects,
-          color: AuthTheme.primary,
-          backgroundColor: Colors.white,
-          child: CustomScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: Responsive.maxContentWidth),
+            child: RefreshIndicator(
+              onRefresh: _fetchSubjects,
+              color: AuthTheme.primary,
+              backgroundColor: Colors.white,
+              child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
@@ -156,9 +175,9 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
                   // Workspace Header
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 20.0,
-                        right: 20.0,
+                      padding: EdgeInsets.only(
+                        left: hPadding,
+                        right: hPadding,
                         top: 14.0,
                         bottom: 20.0,
                       ),
@@ -172,9 +191,9 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
 
                   // State Display: Loading, Error, Empty, or Responsive Grid
                   if (_isLoading)
-                    const SliverPadding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
-                      sliver: SliverToBoxAdapter(
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: hPadding),
+                      sliver: const SliverToBoxAdapter(
                         child: SubjectLoadingState(),
                       ),
                     )
@@ -192,17 +211,17 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
                     )
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.only(
-                        left: 20.0,
-                        right: 20.0,
+                      padding: EdgeInsets.only(
+                        left: hPadding,
+                        right: hPadding,
                         bottom: 32.0,
                       ),
                       sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 1.05,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: childAspectRatio,
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -230,6 +249,8 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
               ),
             ),
           ),
+        ),
+      ),
     );
   }
 

@@ -28,7 +28,7 @@ class PdfDownloadService {
           sendTimeout: const Duration(seconds: 20),
         ),
       ) {
-    if (_dio.httpClientAdapter is IOHttpClientAdapter) {
+    if (!kIsWeb && _dio.httpClientAdapter is IOHttpClientAdapter) {
       (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
         client.badCertificateCallback =
@@ -152,7 +152,11 @@ class PdfDownloadService {
         }
       }
 
-      // --- Save valid PDF to disk ---
+      // --- Save valid PDF to disk (on Web, return url directly) ---
+      if (kIsWeb) {
+        debugPrint('[PdfDownloadService] SUCCESS: Web platform detected, returning URL directly: $url');
+        return url;
+      }
       final dir = await getApplicationDocumentsDirectory();
       final filename = '${DateTime.now().millisecondsSinceEpoch}.pdf';
       final file = File('${dir.path}/$filename');

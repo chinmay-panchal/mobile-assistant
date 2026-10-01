@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Redesigned action panel for customizing a paper:
@@ -10,6 +11,7 @@ class PdfEditSheet extends StatelessWidget {
   final VoidCallback onRemoveLogo;
   final VoidCallback onEditContent;
   final VoidCallback onOpenVisualDesigner;
+  final bool isDialog;
 
   const PdfEditSheet({
     super.key,
@@ -18,6 +20,7 @@ class PdfEditSheet extends StatelessWidget {
     required this.onRemoveLogo,
     required this.onEditContent,
     required this.onOpenVisualDesigner,
+    this.isDialog = false,
   });
 
   static Future<void> show({
@@ -28,16 +31,16 @@ class PdfEditSheet extends StatelessWidget {
     required VoidCallback onEditContent,
     required VoidCallback onOpenVisualDesigner,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PdfEditSheet(
+      maxWidth: 520,
+      builder: (ctx, isDialog) => PdfEditSheet(
         logoBytes: logoBytes,
         onPickLogo: onPickLogo,
         onRemoveLogo: onRemoveLogo,
         onEditContent: onEditContent,
         onOpenVisualDesigner: onOpenVisualDesigner,
+        isDialog: isDialog,
       ),
     );
   }
@@ -45,56 +48,81 @@ class PdfEditSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: isDialog
+            ? BorderRadius.circular(24)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
         22,
-        14,
+        isDialog ? 22 : 14,
         22,
-        MediaQuery.of(context).viewInsets.bottom + 26,
+        isDialog ? 24 : MediaQuery.of(context).viewInsets.bottom + 26,
       ),
       child: SafeArea(
         top: false,
+        bottom: !isDialog,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // Drag Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AuthTheme.inputBorder,
-                  borderRadius: BorderRadius.circular(2),
+            if (!isDialog) ...[
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AuthTheme.inputBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
+              const SizedBox(height: 18),
+            ],
 
-            // Header Title & Subtitle
-            const Text(
-              'Edit Paper',
-              style: TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AuthTheme.textPrimary,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Choose what you’d like to change.',
-              style: TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: AuthTheme.textSecondary,
-              ),
+            // Header Title & Subtitle with optional close button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Edit Paper',
+                        style: TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AuthTheme.textPrimary,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Choose what you’d like to change.',
+                        style: TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: AuthTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isDialog)
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    splashRadius: 18,
+                    tooltip: 'Close',
+                  ),
+              ],
             ),
             const SizedBox(height: 20),
 

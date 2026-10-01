@@ -64,73 +64,76 @@ class _BookDeleteDialogState extends State<BookDeleteDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Padding(
-        padding: const EdgeInsets.all(22.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: AuthTheme.errorLight,
-                shape: BoxShape.circle,
-                border: Border.all(color: AuthTheme.errorBorder),
-              ),
-              child: const Icon(
-                Icons.delete_outline_rounded,
-                color: AuthTheme.error,
-                size: 26,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Delete Book?',
-              style: TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AuthTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Are you sure you want to delete "${widget.bookName}"? All chapters and study materials inside will be permanently deleted.',
-              style: const TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: AuthTheme.textSecondary,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 22),
-            Row(
-              children: [
-                Expanded(
-                  child: AuthPrimaryButton(
-                    text: 'Cancel',
-                    isSecondary: true,
-                    height: 44,
-                    onPressed: _isDeleting ? null : () => Navigator.pop(context),
-                  ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AuthTheme.errorLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AuthTheme.errorBorder),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AuthPrimaryButton(
-                    text: 'Delete',
-                    isDestructive: true,
-                    height: 44,
-                    isLoading: _isDeleting,
-                    onPressed: _handleDelete,
-                  ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AuthTheme.error,
+                  size: 26,
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Delete Book?',
+                style: TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AuthTheme.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Are you sure you want to delete "${widget.bookName}"? All chapters and study materials inside will be permanently deleted.',
+                style: const TextStyle(
+                  fontFamily: AuthTheme.fontFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: AuthTheme.textSecondary,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: AuthPrimaryButton(
+                      text: 'Cancel',
+                      isSecondary: true,
+                      height: 44,
+                      onPressed: _isDeleting ? null : () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AuthPrimaryButton(
+                      text: 'Delete',
+                      isDestructive: true,
+                      height: 44,
+                      isLoading: _isDeleting,
+                      onPressed: _handleDelete,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

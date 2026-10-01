@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import '../../auth/widgets/auth_text_field.dart';
@@ -12,6 +13,8 @@ class BookFormSheet extends StatefulWidget {
   final String? initialName;
   final Future<void> Function(String name) onSubmit;
 
+  final bool isDialog;
+
   const BookFormSheet({
     super.key,
     required this.title,
@@ -19,6 +22,7 @@ class BookFormSheet extends StatefulWidget {
     required this.submitButtonText,
     this.initialName,
     required this.onSubmit,
+    this.isDialog = false,
   });
 
   static Future<void> show({
@@ -29,16 +33,16 @@ class BookFormSheet extends StatefulWidget {
     String? initialName,
     required Future<void> Function(String name) onSubmit,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BookFormSheet(
+      maxWidth: 480,
+      builder: (ctx, isDialog) => BookFormSheet(
         title: title,
         subtitle: subtitle,
         submitButtonText: submitButtonText,
         initialName: initialName,
         onSubmit: onSubmit,
+        isDialog: isDialog,
       ),
     );
   }
@@ -97,52 +101,77 @@ class _BookFormSheetState extends State<BookFormSheet> {
       padding: EdgeInsets.only(
         left: 24,
         right: 24,
-        top: 14,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        top: widget.isDialog ? 22 : 14,
+        bottom: MediaQuery.of(context).viewInsets.bottom + (widget.isDialog ? 24 : 24),
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: widget.isDialog
+            ? BorderRadius.circular(24)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
+        bottom: !widget.isDialog,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AuthTheme.inputBorder,
-                  borderRadius: BorderRadius.circular(2),
+            if (!widget.isDialog) ...[
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AuthTheme.inputBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
 
-            // Sheet Title & Description
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AuthTheme.textPrimary,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.subtitle,
-              style: const TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: AuthTheme.textSecondary,
-              ),
+            // Sheet Title & Description with optional close button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AuthTheme.textPrimary,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.subtitle,
+                        style: const TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: AuthTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.isDialog)
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    splashRadius: 18,
+                    tooltip: 'Close',
+                  ),
+              ],
             ),
             const SizedBox(height: 22),
 

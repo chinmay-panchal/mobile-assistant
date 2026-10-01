@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Bottom sheet for selecting a target page to place text or image elements.
@@ -6,12 +7,14 @@ class DesignerPageSheet extends StatelessWidget {
   final int pageCount;
   final bool isText;
   final ValueChanged<int> onPageSelected;
+  final bool isDialog;
 
   const DesignerPageSheet({
     super.key,
     required this.pageCount,
     required this.isText,
     required this.onPageSelected,
+    this.isDialog = false,
   });
 
   static Future<void> show({
@@ -20,14 +23,14 @@ class DesignerPageSheet extends StatelessWidget {
     required bool isText,
     required ValueChanged<int> onPageSelected,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DesignerPageSheet(
+      maxWidth: 480,
+      builder: (ctx, isDialog) => DesignerPageSheet(
         pageCount: pageCount,
         isText: isText,
         onPageSelected: onPageSelected,
+        isDialog: isDialog,
       ),
     );
   }
@@ -40,55 +43,80 @@ class DesignerPageSheet extends StatelessWidget {
     final iconBg = isText ? const Color(0xFFE0F2FE) : const Color(0xFFEDE9FE);
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: isDialog
+            ? BorderRadius.circular(24)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
         22,
-        14,
+        isDialog ? 22 : 14,
         22,
-        MediaQuery.of(context).viewInsets.bottom + 26,
+        isDialog ? 24 : MediaQuery.of(context).viewInsets.bottom + 26,
       ),
       child: SafeArea(
         top: false,
+        bottom: !isDialog,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AuthTheme.inputBorder,
-                  borderRadius: BorderRadius.circular(2),
+            if (!isDialog) ...[
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AuthTheme.inputBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
+              const SizedBox(height: 18),
+            ],
 
-            // Header
-            Text(
-              title,
-              style: const TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AuthTheme.textPrimary,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Choose the page where you want to place the element.',
-              style: TextStyle(
-                fontFamily: AuthTheme.fontFamily,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: AuthTheme.textSecondary,
-              ),
+            // Header with optional close button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AuthTheme.textPrimary,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Choose the page where you want to place the element.',
+                        style: TextStyle(
+                          fontFamily: AuthTheme.fontFamily,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: AuthTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isDialog)
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    splashRadius: 18,
+                    tooltip: 'Close',
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
 

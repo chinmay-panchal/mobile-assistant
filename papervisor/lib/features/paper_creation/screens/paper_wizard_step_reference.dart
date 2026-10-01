@@ -1,6 +1,6 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import '../../auth/widgets/auth_text_field.dart';
@@ -42,6 +42,7 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
   final TextEditingController _examTypeCtrl = TextEditingController();
   String? _pickedFileName;
   String? _pickedFilePath;
+  Uint8List? _pickedFileBytes;
 
   @override
   void initState() {
@@ -86,10 +87,11 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       );
       if (result.isEmpty) return;
       final picked = result.first;
-      if (picked.path == null) return;
+      final bytes = await picked.readAsBytes();
 
       setState(() {
         _pickedFilePath = picked.path;
+        _pickedFileBytes = bytes;
         _pickedFileName = picked.name;
         if (_titleCtrl.text.trim().isEmpty) {
           _titleCtrl.text = picked.name.replaceAll('.pdf', '');
@@ -106,7 +108,7 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       );
       return;
     }
-    if (_pickedFilePath == null) {
+    if (_pickedFilePath == null && _pickedFileBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a PDF file first.')),
       );
@@ -119,7 +121,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       final uploaded = await _refService.uploadReferencePaper(
         subjectId: widget.subject['id'],
         title: title,
-        filePath: _pickedFilePath!,
+        filePath: _pickedFilePath,
+        fileBytes: _pickedFileBytes,
+        fileName: _pickedFileName,
         year: int.tryParse(_yearCtrl.text.trim()),
         examType: _examTypeCtrl.text.trim().isEmpty ? null : _examTypeCtrl.text.trim(),
       );
@@ -133,6 +137,7 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
           _examTypeCtrl.clear();
           _pickedFileName = null;
           _pickedFilePath = null;
+          _pickedFileBytes = null;
         });
         await _fetchPapers();
         if (!mounted) return;
@@ -159,14 +164,18 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // Top Step Header (No back arrow)
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 860),
+            child: Column(
+              children: [
+                // Top Step Header (No back arrow)
             WizardStepHeader(
               subjectName: widget.subject['name'] ?? 'Subject',
               currentStep: 3,
               title: 'Reference Paper',
               subtitle: 'Select an optional blueprint or skip for custom format',
+              onBack: () => Navigator.pop(context),
             ),
 
             // Segmented Tab Bar
@@ -419,7 +428,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                           text: 'Upload & Select Paper',
                           icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 18),
                           isLoading: _uploading,
-                          onPressed: _pickedFilePath != null && !_uploading ? _uploadPickedFile : null,
+                          onPressed: (_pickedFileName != null || _pickedFilePath != null) && !_uploading
+                              ? _uploadPickedFile
+                              : null,
                         ),
                       ],
                     ),
@@ -490,8 +501,10 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Future<void> _previewPaper(Map<String, dynamic> paper, {bool isAi = false}) async {
     final title = (paper['title'] ?? 'Paper Preview').toString();

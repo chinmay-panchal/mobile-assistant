@@ -79,7 +79,12 @@ class AuthScaffold extends StatelessWidget {
                     physics: const BouncingScrollPhysics(),
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: padding,
-                    child: child,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: child,
+                      ),
+                    ),
                   ),
                 ),
               ],

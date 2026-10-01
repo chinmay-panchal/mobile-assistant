@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../providers/explore_provider.dart';
 import '../repositories/past_downloads_repository.dart';
@@ -94,6 +96,16 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   Future<void> _openFile(DownloadedPdf pdf) async {
+    if (kIsWeb) {
+      if (pdf.sourceUrl.isNotEmpty) {
+        final uri = Uri.parse(pdf.sourceUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+          return;
+        }
+      }
+      return;
+    }
     final result = await OpenFile.open(pdf.localPath);
     if (result.type != ResultType.done && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -135,64 +147,69 @@ class _ExploreScreenState extends State<ExploreScreen>
         onOpenFile: _openFile,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // ── Minimal Top Header (NO Back Button) ─────────────────────
-            ExploreHeader(
-              downloadCount: downloadCount,
-              onHistoryTap: _openHistoryDrawer,
-            ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 860),
+            child: Column(
+              children: [
+                // ── Minimal Top Header (NO Back Button) ─────────────────────
+                ExploreHeader(
+                  downloadCount: downloadCount,
+                  onHistoryTap: _openHistoryDrawer,
+                ),
 
-            // ── Error Banner ───────────────────────────────────────────
-            if (provider.status == ExploreStatus.error)
-              ExploreErrorBanner(
-                message: provider.errorMessage ??
-                    "Couldn't find a downloadable PDF — try rephrasing with subject and year",
-                onDismiss: () => context.read<ExploreProvider>().resetStatus(),
-              ),
-
-            // ── Ready Download Result Card ─────────────────────────────
-            if (_currentResultPdf != null)
-              ExploreResultCard(
-                pdf: _currentResultPdf!,
-                onOpenPdf: () => _openFile(_currentResultPdf!),
-                onDismiss: () => setState(() => _currentResultPdf = null),
-              ),
-
-            // ── Center Content Area ────────────────────────────────────
-            Expanded(
-              child: Stack(
-                children: [
-                  // Centered Empty / Suggestions State
-                  ExploreEmptyState(
-                    onSuggestionSelected: _handleSuggestion,
+                // ── Error Banner ───────────────────────────────────────────
+                if (provider.status == ExploreStatus.error)
+                  ExploreErrorBanner(
+                    message: provider.errorMessage ??
+                        "Couldn't find a downloadable PDF — try rephrasing with subject and year",
+                    onDismiss: () => context.read<ExploreProvider>().resetStatus(),
                   ),
 
-                  // Gemini Clarification Dialog / Modal
-                  if (provider.status == ExploreStatus.clarifying &&
-                      provider.clarificationRequest != null)
-                    ExploreClarificationCard(
-                      request: provider.clarificationRequest!,
-                      onSubmit: (option) => context
-                          .read<ExploreProvider>()
-                          .submitClarification(option),
-                    ),
+                // ── Ready Download Result Card ─────────────────────────────
+                if (_currentResultPdf != null)
+                  ExploreResultCard(
+                    pdf: _currentResultPdf!,
+                    onOpenPdf: () => _openFile(_currentResultPdf!),
+                    onDismiss: () => setState(() => _currentResultPdf = null),
+                  ),
 
-                  // Loading Pulse Banner Overlay
-                  if (isLoading)
-                    ExploreLoadingCard(pulseCtrl: _pulseCtrl),
-                ],
-              ),
-            ),
+                // ── Center Content Area ────────────────────────────────────
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Centered Empty / Suggestions State
+                      ExploreEmptyState(
+                        onSuggestionSelected: _handleSuggestion,
+                      ),
 
-            // ── Floating Input Composer ────────────────────────────────
-            ExploreInputComposer(
-              controller: _controller,
-              focusNode: _focusNode,
-              isLoading: isLoading,
-              onSubmit: _submit,
+                      // Gemini Clarification Dialog / Modal
+                      if (provider.status == ExploreStatus.clarifying &&
+                          provider.clarificationRequest != null)
+                        ExploreClarificationCard(
+                          request: provider.clarificationRequest!,
+                          onSubmit: (option) => context
+                              .read<ExploreProvider>()
+                              .submitClarification(option),
+                        ),
+
+                      // Loading Pulse Banner Overlay
+                      if (isLoading)
+                        ExploreLoadingCard(pulseCtrl: _pulseCtrl),
+                    ],
+                  ),
+                ),
+
+                // ── Floating Input Composer ────────────────────────────────
+                ExploreInputComposer(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  isLoading: isLoading,
+                  onSubmit: _submit,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

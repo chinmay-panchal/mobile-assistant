@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Contextual header for the Subject Detail screen.
@@ -19,8 +21,39 @@ class SubjectDetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
+
     return Row(
       children: [
+        // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+        if (onBack != null && showWebBack) ...[
+          Tooltip(
+            message: 'Back to Subjects',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onBack,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    size: 20,
+                    color: AuthTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+
         // Subject Icon Container
         Container(
           width: 44,

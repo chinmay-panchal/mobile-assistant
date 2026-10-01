@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/pdf_preview_helper.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 
@@ -8,11 +9,13 @@ import '../../auth/widgets/auth_primary_button.dart';
 class BookSelectionSheet extends StatefulWidget {
   final List<Map<String, dynamic>> books;
   final ValueChanged<Map<String, dynamic>> onSelect;
+  final bool isDialog;
 
   const BookSelectionSheet({
     super.key,
     required this.books,
     required this.onSelect,
+    this.isDialog = false,
   });
 
   static Future<void> show({
@@ -20,14 +23,22 @@ class BookSelectionSheet extends StatefulWidget {
     required List<Map<String, dynamic>> books,
     required ValueChanged<Map<String, dynamic>> onSelect,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      maxWidth: 560,
+      builder: (ctx, isDialog) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: isDialog
+              ? BorderRadius.circular(24)
+              : const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: BookSelectionSheet(
+          books: books,
+          onSelect: onSelect,
+          isDialog: isDialog,
+        ),
       ),
-      builder: (_) => BookSelectionSheet(books: books, onSelect: onSelect),
     );
   }
 
@@ -91,29 +102,38 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
     );
 
     return SafeArea(
+      top: false,
+      bottom: !widget.isDialog,
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.of(context).size.height * (widget.isDialog ? 0.82 : 0.85),
         ),
-        padding: EdgeInsets.fromLTRB(20, 12, 20, bottomInset + 16),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          widget.isDialog ? 20 : 12,
+          20,
+          widget.isDialog ? 20 : bottomInset + 16,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
+            // Drag Handle (only when bottom sheet)
+            if (!widget.isDialog) ...[
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
+            ],
 
-            // Header Title & Subtitle
+            // Header Title & Subtitle + Close button for dialog
             Row(
               children: [
                 Container(
@@ -157,6 +177,14 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                     ],
                   ),
                 ),
+                if (widget.isDialog) ...[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    splashRadius: 18,
+                    tooltip: 'Close',
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),

@@ -339,8 +339,11 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
         backgroundColor: const Color(0xFFF8FAFC),
         body: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 860),
+              child: Column(
+                children: [
               // Header
               WizardStepHeader(
                 subjectName: widget.subject['name'] ?? 'Subject',
@@ -349,6 +352,13 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                 subtitle: _currentStage == 0
                     ? 'Choose layout pattern and configure section marks'
                     : 'Set exam title, duration and optional formats',
+                onBack: () {
+                  if (_currentStage == 1) {
+                    setState(() => _currentStage = 0);
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
                 trailing: _currentStage == 1
                     ? TextButton.icon(
                         onPressed: () => setState(() => _currentStage = 0),
@@ -394,8 +404,10 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   // ── Stage Switcher Pill Indicator ──────────────────
   Widget _buildSubStageIndicator() {

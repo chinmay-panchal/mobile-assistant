@@ -7,6 +7,7 @@ import '../../services/api_client.dart';
 /// Helper to download and preview remote PDFs in-app using [SavedPdfViewerScreen].
 class PdfPreviewHelper {
   static const String defaultHost = 'https://revisit-humongous-wiry.ngrok-free.dev';
+  // static const String defaultHost = 'https://100.60.191.242.sslip.io';
 
   /// Resolves the URL, displays a loading spinner, fetches binary bytes with auth,
   /// and pushes [SavedPdfViewerScreen] on success.
@@ -47,7 +48,10 @@ class PdfPreviewHelper {
 
       final response = await http.get(
         Uri.parse(fullUrl),
-        headers: token != null ? {'Authorization': 'Bearer $token'} : {},
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
       );
 
       if (!context.mounted) return;

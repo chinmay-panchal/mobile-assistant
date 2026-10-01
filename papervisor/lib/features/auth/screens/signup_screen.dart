@@ -182,8 +182,9 @@ class _SignupScreenState extends State<SignupScreen> {
           const SizedBox(height: 24),
 
           // Toggle to Log In
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Text(
                 'Already have an account? ',

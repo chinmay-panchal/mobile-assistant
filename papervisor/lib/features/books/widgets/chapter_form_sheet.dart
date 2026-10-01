@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 
@@ -12,6 +13,7 @@ class ChapterFormSheet extends StatefulWidget {
   final int? initialEndPage;
   final bool hasWholeBookPdf;
   final bool isEditing;
+  final bool isDialog;
   final Future<void> Function({
     required int chapterNumber,
     required String title,
@@ -28,6 +30,7 @@ class ChapterFormSheet extends StatefulWidget {
     this.initialEndPage,
     required this.hasWholeBookPdf,
     this.isEditing = false,
+    this.isDialog = false,
     required this.onSubmit,
   });
 
@@ -43,14 +46,14 @@ class ChapterFormSheet extends StatefulWidget {
       PlatformFile? selectedPdfFile,
     }) onSubmit,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ChapterFormSheet(
+      maxWidth: 520,
+      builder: (ctx, isDialog) => ChapterFormSheet(
         initialChapterNumber: nextChapterNum,
         hasWholeBookPdf: hasWholeBookPdf,
         isEditing: false,
+        isDialog: isDialog,
         onSubmit: onSubmit,
       ),
     );
@@ -77,17 +80,17 @@ class ChapterFormSheet extends StatefulWidget {
         ? (chapter['end_page'] as num).toInt()
         : int.tryParse(chapter['end_page']?.toString() ?? '');
 
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ChapterFormSheet(
+      maxWidth: 520,
+      builder: (ctx, isDialog) => ChapterFormSheet(
         initialTitle: (chapter['name'] ?? chapter['title'] ?? '').toString(),
         initialChapterNumber: chapterNum,
         initialStartPage: startPage,
         initialEndPage: endPage,
         hasWholeBookPdf: hasWholeBookPdf,
         isEditing: true,
+        isDialog: isDialog,
         onSubmit: onSubmit,
       ),
     );
@@ -217,60 +220,84 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: widget.isDialog
+            ? BorderRadius.circular(24)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
         22,
-        14,
+        widget.isDialog ? 22 : 14,
         22,
-        MediaQuery.of(context).viewInsets.bottom + 26,
+        widget.isDialog ? 24 : MediaQuery.of(context).viewInsets.bottom + 26,
       ),
       child: SafeArea(
         top: false,
+        bottom: !widget.isDialog,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Drag Handle
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AuthTheme.inputBorder,
-                    borderRadius: BorderRadius.circular(2),
+              if (!widget.isDialog) ...[
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AuthTheme.inputBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 18),
+                const SizedBox(height: 18),
+              ],
 
-              // Sheet Header
-              Text(
-                widget.isEditing ? 'Edit Chapter' : 'Add Chapter',
-                style: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AuthTheme.textPrimary,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.isEditing
-                    ? 'Update chapter number, name, and details.'
-                    : widget.hasWholeBookPdf
-                        ? 'Enter chapter details and page range from the book.'
-                        : 'Enter chapter details and upload the chapter PDF.',
-                style: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: AuthTheme.textSecondary,
-                ),
+              // Sheet Header with optional close button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.isEditing ? 'Edit Chapter' : 'Add Chapter',
+                          style: const TextStyle(
+                            fontFamily: AuthTheme.fontFamily,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: AuthTheme.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.isEditing
+                              ? 'Update chapter number, name, and details.'
+                              : widget.hasWholeBookPdf
+                                  ? 'Enter chapter details and page range from the book.'
+                                  : 'Enter chapter details and upload the chapter PDF.',
+                          style: const TextStyle(
+                            fontFamily: AuthTheme.fontFamily,
+                            fontSize: 13,
+                            color: AuthTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (widget.isDialog)
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                      splashRadius: 18,
+                      tooltip: 'Close',
+                    ),
+                ],
               ),
               const SizedBox(height: 18),
 

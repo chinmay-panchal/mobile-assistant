@@ -177,7 +177,39 @@ void main() {
       await tester.tap(find.text('Challenging'));
       await tester.pumpAndSettle();
 
-      expect(find.text('50%'), findsOneWidget); // Hard is 50%
+      expect(find.widgetWithText(TextField, '50'), findsOneWidget); // Hard is 50
+    });
+
+    testWidgets('PaperWizardStepDifficulty manual text edit does not alter other fields and validates exceeding 100%', (WidgetTester tester) async {
+      final state = PaperWizardState()..totalMarks = 80;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PaperWizardStepDifficulty(
+            subject: const {'id': 'sub_1', 'name': 'Mathematics'},
+            state: state,
+          ),
+        ),
+      );
+
+      // Initially 25 / 50 / 25
+      expect(find.widgetWithText(TextField, '25'), findsNWidgets(2)); // Easy and Hard
+      expect(find.widgetWithText(TextField, '50'), findsOneWidget); // Medium
+
+      // Enter '40' in Easy (first text field)
+      final easyField = find.byType(TextField).first;
+      await tester.enterText(easyField, '40');
+      await tester.pumpAndSettle();
+
+      // Easy is 40, Medium should STILL be 50, Hard should STILL be 25
+      expect(find.widgetWithText(TextField, '40'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '50'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '25'), findsOneWidget);
+
+      // Total is 115% -> exceeds 100% -> error banner shown, continue disabled
+      expect(find.textContaining('Exceeds 100% by 15%'), findsOneWidget);
+      final bottomBar = tester.widget<WizardBottomBar>(find.byType(WizardBottomBar));
+      expect(bottomBar.onPressed, isNull);
     });
 
     testWidgets('PaperWizardStepFormat renders layout patterns with marks and qty steppers and navigates to Stage 2', (WidgetTester tester) async {

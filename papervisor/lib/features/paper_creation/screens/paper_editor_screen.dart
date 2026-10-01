@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/utils/text_sanitizer.dart';
 import '../../../../core/widgets/svg_diagram_viewer.dart';
 import '../../auth/theme/auth_theme.dart';
@@ -145,11 +147,16 @@ class _PaperEditorScreenState extends State<PaperEditorScreen> {
   Widget build(BuildContext context) {
     final questions = _editablePaper['questions'] as List<dynamic>? ?? [];
 
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
+
     return Scaffold(
       backgroundColor: AuthTheme.background,
       body: SafeArea(
-        child: Column(
-          children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Column(
+              children: [
             // Top Modern Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -171,6 +178,35 @@ class _PaperEditorScreenState extends State<PaperEditorScreen> {
               ),
               child: Row(
                 children: [
+                  // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+                  if (showWebBack) ...[
+                    Tooltip(
+                      message: 'Back',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 18,
+                              color: AuthTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+
                   const Expanded(
                     child: Text(
                       'Edit Paper',
@@ -386,8 +422,10 @@ class _PaperEditorScreenState extends State<PaperEditorScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildLabeledInput({
     required String label,

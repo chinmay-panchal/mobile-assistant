@@ -70,10 +70,12 @@ class _PaperDeleteDialogState extends State<PaperDeleteDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Padding(
-        padding: const EdgeInsets.all(22.0),
-        child: Column(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
@@ -139,6 +141,7 @@ class _PaperDeleteDialogState extends State<PaperDeleteDialog> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

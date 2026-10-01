@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../services/pdf_export_service.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../models/custom_element.dart';
@@ -255,30 +256,41 @@ class _VisualDesignerScreenState extends State<VisualDesignerScreen> {
     if (files.isEmpty) return;
 
     final rawBytes = await files.first.readAsBytes();
-    final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/designer_img_temp.png');
-    await tempFile.writeAsBytes(rawBytes);
+    if (rawBytes.isEmpty) return;
 
-    if (!mounted) return;
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: tempFile.path,
-      compressFormat: ImageCompressFormat.png,
-      compressQuality: 100,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: AppColors.primary,
-          toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: AppColors.primary,
-          lockAspectRatio: false,
-          hideBottomControls: false,
-        ),
-        IOSUiSettings(title: 'Crop Image'),
-      ],
-    );
+    Uint8List? bytes;
 
-    if (cropped != null) {
-      final bytes = await cropped.readAsBytes();
+    if (kIsWeb) {
+      bytes = rawBytes;
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/designer_img_temp.png');
+      await tempFile.writeAsBytes(rawBytes);
+
+      if (!mounted) return;
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: tempFile.path,
+        compressFormat: ImageCompressFormat.png,
+        compressQuality: 100,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: AppColors.primary,
+            lockAspectRatio: false,
+            hideBottomControls: false,
+          ),
+          IOSUiSettings(title: 'Crop Image'),
+        ],
+      );
+
+      if (cropped != null) {
+        bytes = await cropped.readAsBytes();
+      }
+    }
+
+    if (bytes != null) {
       setState(() {
         _elements.add(CustomElement(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -337,44 +349,61 @@ class _VisualDesignerScreenState extends State<VisualDesignerScreen> {
   }
 
   void _showElementOptionsSheet(CustomElement el) {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
+      maxWidth: 420,
+      builder: (ctx, isDialog) => Container(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: isDialog
+              ? BorderRadius.circular(24)
+              : const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.fromLTRB(
           22,
-          14,
+          isDialog ? 20 : 14,
           22,
-          MediaQuery.of(ctx).viewInsets.bottom + 26,
+          isDialog ? 20 : MediaQuery.of(ctx).viewInsets.bottom + 26,
         ),
         child: SafeArea(
           top: false,
+          bottom: !isDialog,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AuthTheme.inputBorder,
-                    borderRadius: BorderRadius.circular(2),
+              if (!isDialog) ...[
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AuthTheme.inputBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                el.type == CustomElementType.text ? 'Text Options' : 'Image Options',
-                style: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AuthTheme.textPrimary,
-                ),
+                const SizedBox(height: 16),
+              ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    el.type == CustomElementType.text ? 'Text Options' : 'Image Options',
+                    style: const TextStyle(
+                      fontFamily: AuthTheme.fontFamily,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AuthTheme.textPrimary,
+                    ),
+                  ),
+                  if (isDialog)
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                      splashRadius: 18,
+                      tooltip: 'Close',
+                    ),
+                ],
               ),
               const SizedBox(height: 14),
               ListTile(
@@ -445,6 +474,8 @@ class _VisualDesignerScreenState extends State<VisualDesignerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9), // Soft neutral slate canvas
       appBar: PreferredSize(
@@ -461,6 +492,35 @@ class _VisualDesignerScreenState extends State<VisualDesignerScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
+                  // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+                  if (showWebBack) ...[
+                    Tooltip(
+                      message: 'Back',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 18,
+                              color: AuthTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+
                   // Title
                   const Expanded(
                     child: Column(

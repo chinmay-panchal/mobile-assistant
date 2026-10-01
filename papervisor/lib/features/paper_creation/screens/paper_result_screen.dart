@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import 'pdf_preview_screen.dart';
@@ -21,6 +23,7 @@ class PaperResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
     final String title = paper['title'] ?? 'Generated Paper';
     final int marks = paper['total_marks'] ?? 0;
     final String difficulty = paper['difficulty'] ?? 'Balanced';
@@ -78,14 +81,52 @@ class PaperResultScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Header (No back arrow)
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 860),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              // Top Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Row(
                   children: [
+                    // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+                    if (showWebBack) ...[
+                      Tooltip(
+                        message: 'Back',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Navigator.popUntil(context, (route) => route.isFirst);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_rounded,
+                                size: 18,
+                                color: AuthTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+
                     // Subject Icon Badge
                     Container(
                       width: 40,
@@ -369,8 +410,10 @@ class PaperResultScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Color _getColorForSection(String sectionName) {
     if (sectionName.toLowerCase().contains('a')) return AuthTheme.primary;

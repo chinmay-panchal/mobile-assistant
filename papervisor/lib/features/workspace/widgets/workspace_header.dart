@@ -4,12 +4,12 @@ import '../constants/workspace_theme.dart';
 /// Top header for the Home/Workspaces screen featuring user greeting,
 /// title, and quick action icon buttons for PYQ search and logout.
 class WorkspaceHeader extends StatelessWidget {
-  final VoidCallback onSearchPyq;
+  final VoidCallback? onSearchPyq;
   final VoidCallback onLogout;
 
   const WorkspaceHeader({
     super.key,
-    required this.onSearchPyq,
+    this.onSearchPyq,
     required this.onLogout,
   });
 
@@ -89,17 +89,20 @@ class WorkspaceHeader extends StatelessWidget {
 
         const SizedBox(width: 14),
 
-        // Action Buttons: Search & Logout
+        // Action Buttons: Search (commented out) & Logout
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildActionButton(
-              icon: Icons.search_rounded,
-              tooltip: 'Search PYQs',
-              iconColor: WorkspaceTheme.textPrimary,
-              onTap: onSearchPyq,
-            ),
-            const SizedBox(width: 8),
+            // Explore / Search PYQ button (commented out)
+            // if (onSearchPyq != null) ...[
+            //   _buildActionButton(
+            //     icon: Icons.search_rounded,
+            //     tooltip: 'Search PYQs',
+            //     iconColor: WorkspaceTheme.textPrimary,
+            //     onTap: onSearchPyq!,
+            //   ),
+            //   const SizedBox(width: 8),
+            // ],
             _buildActionButton(
               icon: Icons.logout_rounded,
               tooltip: 'Sign Out',

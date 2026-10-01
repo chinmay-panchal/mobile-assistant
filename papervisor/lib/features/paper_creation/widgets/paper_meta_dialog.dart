@@ -81,9 +81,11 @@ class _PaperMetaDialogState extends State<PaperMetaDialog> {
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -210,6 +212,7 @@ class _PaperMetaDialogState extends State<PaperMetaDialog> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

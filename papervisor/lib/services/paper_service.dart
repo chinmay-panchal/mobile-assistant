@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
@@ -94,6 +93,7 @@ class PaperService {
     final url = Uri.parse('${ApiClient.baseUrl}/papers/$paperId/save-pdf');
 
     final request = http.MultipartRequest('POST', url);
+    request.headers['ngrok-skip-browser-warning'] = 'true';
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }

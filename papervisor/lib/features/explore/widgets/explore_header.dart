@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Minimal, clean top header for the Explore PYQs experience.
-/// Per requirements, does NOT render any visible back arrow button.
+/// Per requirements, does NOT render any visible back arrow button on phone/mobile.
 class ExploreHeader extends StatelessWidget {
   final int downloadCount;
   final VoidCallback onHistoryTap;
@@ -15,6 +17,8 @@ class ExploreHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 16, 12),
       decoration: const BoxDecoration(
@@ -27,6 +31,35 @@ class ExploreHeader extends StatelessWidget {
         bottom: false,
         child: Row(
           children: [
+            // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+            if (Navigator.canPop(context) && showWebBack) ...[
+              Tooltip(
+                message: 'Back',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 18,
+                        color: AuthTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
+
             // AI Sparkle Badge + Title
             Container(
               width: 38,

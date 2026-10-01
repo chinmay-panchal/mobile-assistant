@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
 
@@ -8,18 +9,31 @@ class ReferencePaperService {
   Future<Map<String, dynamic>> uploadReferencePaper({
     required String subjectId,
     required String title,
-    required String filePath,
+    String? filePath,
+    Uint8List? fileBytes,
+    String? fileName,
     int? year,
     String? examType,
   }) async {
     final token = await _apiClient.getAccessToken();
     final uri = Uri.parse('${ApiClient.baseUrl}/subjects/$subjectId/reference-papers');
     final request = http.MultipartRequest('POST', uri);
+    request.headers['ngrok-skip-browser-warning'] = 'true';
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
     request.fields['title'] = title;
     if (year != null) request.fields['year'] = year.toString();
     if (examType != null && examType.isNotEmpty) request.fields['exam_type'] = examType;
-    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    if (fileBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: fileName ?? 'reference_paper.pdf',
+      ));
+    } else if (filePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    } else {
+      throw Exception('Either filePath or fileBytes must be provided.');
+    }
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode == 200 || response.statusCode == 201) {

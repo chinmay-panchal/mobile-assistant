@@ -141,11 +141,14 @@ class _GeneratingLoaderScreenState extends State<GeneratingLoaderScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
               const Spacer(),
 
               // Pulsing AI Badge
@@ -283,6 +286,8 @@ class _GeneratingLoaderScreenState extends State<GeneratingLoaderScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

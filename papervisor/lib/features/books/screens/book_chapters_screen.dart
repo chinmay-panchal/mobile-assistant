@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/utils/responsive.dart';
 import '../../../../services/book_service.dart';
 import '../../../../services/chapter_service.dart';
 import '../../../../services/document_service.dart';
@@ -38,6 +39,7 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
   List<Map<String, dynamic>> _chapters = [];
   late Map<String, dynamic> _bookData;
   bool _isLoading = true;
+  bool _isUploadingBook = false;
   String? _error;
 
   // Tracks book-level uploaded documents (not chapter-specific)
@@ -46,6 +48,19 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
   final Map<String, Timer> _pollingTimers = {};
   // Consecutive network error counts per document id
   final Map<String, int> _pollErrorCounts = {};
+
+  /// Returns true if a book PDF upload is in progress or being processed.
+  bool get _isBookProcessing {
+    if (_isUploadingBook) return true;
+    if (_pollingTimers.isNotEmpty) return true;
+    for (final doc in _bookDocuments) {
+      final status = (doc['status'] ?? '').toString().toUpperCase();
+      if (status.isNotEmpty && status != 'READY' && status != 'FAILED') {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -186,6 +201,7 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
   Future<void> _openPdfUrl(String? urlPath) async {
     if (urlPath == null) return;
     final uri = Uri.parse('https://revisit-humongous-wiry.ngrok-free.dev$urlPath');
+    // final uri = Uri.parse('https://100.60.191.242.sslip.io$urlPath');
     try {
       await launchUrl(uri, mode: LaunchMode.platformDefault);
     } catch (e) {
@@ -214,34 +230,41 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
 
       if (result.isNotEmpty) {
         final picked = result.first;
-        if (picked.path == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                behavior: SnackBarBehavior.floating,
-                content: Text('Could not access file. Please try again.'),
-              ),
-            );
-          }
-          return;
-        }
-        setState(() => _isLoading = true);
+        final bytes = await picked.readAsBytes();
+
+        setState(() {
+          _isUploadingBook = true;
+          _bookDocuments.add({
+            'id': 'temp_uploading',
+            'filename': picked.name,
+            'status': 'UPLOADED',
+            'file_url': null,
+          });
+        });
 
         final doc = await _documentService.uploadDocument(
-          filePath: picked.path!,
+          filePath: picked.path,
+          fileBytes: bytes,
+          fileName: picked.name,
           bookId: widget.book['id'],
         );
 
         if (mounted) {
           final docId = doc['id'] as String;
           setState(() {
-            _isLoading = false;
-            _bookDocuments.add({
+            _isUploadingBook = false;
+            final idx = _bookDocuments.indexWhere((d) => d['id'] == 'temp_uploading');
+            final updatedDoc = {
               'id': docId,
               'filename': picked.name,
               'status': 'UPLOADED',
               'file_url': '/storage/documents/$docId/original.pdf',
-            });
+            };
+            if (idx != -1) {
+              _bookDocuments[idx] = updatedDoc;
+            } else {
+              _bookDocuments.add(updatedDoc);
+            }
           });
           _startPolling(docId);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -259,7 +282,10 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isUploadingBook = false;
+          _bookDocuments.removeWhere((d) => d['id'] == 'temp_uploading');
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -294,9 +320,12 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
           startPage: startPage,
           endPage: endPage,
         );
-        if (selectedPdfFile != null && selectedPdfFile.path != null) {
+        if (selectedPdfFile != null) {
+          final bytes = await selectedPdfFile.readAsBytes();
           await _documentService.uploadDocument(
-            filePath: selectedPdfFile.path!,
+            filePath: selectedPdfFile.path,
+            fileBytes: bytes,
+            fileName: selectedPdfFile.name,
             bookId: widget.book['id'],
             chapterId: chapter['id'],
           );
@@ -351,51 +380,65 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
     final bookTitle = (_bookData['title'] ?? _bookData['name'] ?? 'Book Chapters').toString();
     final subjectName = (widget.subject['name'] ?? 'Subject').toString();
     final hasBookPdf = _bookDocuments.isNotEmpty && _bookDocuments.first['file_url'] != null;
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final hPadding = isDesktop ? 36.0 : (isTablet ? 28.0 : 20.0);
 
     return Scaffold(
       backgroundColor: AuthTheme.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Top Modern Header
-            BookHeader(
-              bookTitle: bookTitle,
-              subjectName: subjectName,
-              chapterCount: _chapters.length,
-              onBack: () => Navigator.pop(context),
-              onPreviewBook: hasBookPdf
-                  ? () => _openPdfUrl(_bookDocuments.first['file_url'])
-                  : null,
-            ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1050),
+            child: Column(
+              children: [
+                // Top Modern Header
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: hPadding,
+                    right: hPadding,
+                    top: 14.0,
+                    bottom: 4.0,
+                  ),
+                  child: BookHeader(
+                    bookTitle: bookTitle,
+                    subjectName: subjectName,
+                    chapterCount: _chapters.length,
+                    onBack: () => Navigator.pop(context),
+                    onPreviewBook: hasBookPdf
+                        ? () => _openPdfUrl(_bookDocuments.first['file_url'])
+                        : null,
+                  ),
+                ),
 
-            // Content Area
-            Expanded(
-              child: _isLoading
-                  ? const ChapterLoadingState()
-                  : _error != null
-                      ? _buildErrorState()
-                      : RefreshIndicator(
-                          onRefresh: () async {
-                            await Future.wait([_fetchChapters(), _fetchBook()]);
-                          },
-                          color: AuthTheme.primary,
-                          child: ListView(
-                            padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
-                            physics: const AlwaysScrollableScrollPhysics(
-                              parent: BouncingScrollPhysics(),
-                            ),
-                            children: [
-                              // ── 1. Book PDF Card (Uploaded or Upload CTA) ──
-                              BookPdfCard(
-                                document: _bookDocuments.isNotEmpty
-                                    ? _bookDocuments.first
-                                    : null,
-                                onPreview: hasBookPdf
-                                    ? () => _openPdfUrl(_bookDocuments.first['file_url'])
-                                    : null,
-                                onUpload: _uploadWholeBook,
-                              ),
-                              const SizedBox(height: 22),
+                // Content Area
+                Expanded(
+                  child: _isLoading
+                      ? const ChapterLoadingState()
+                      : _error != null
+                          ? _buildErrorState()
+                          : RefreshIndicator(
+                              onRefresh: () async {
+                                await Future.wait([_fetchChapters(), _fetchBook()]);
+                              },
+                              color: AuthTheme.primary,
+                              child: ListView(
+                                padding: EdgeInsets.fromLTRB(hPadding, 14, hPadding, 32),
+                                physics: const AlwaysScrollableScrollPhysics(
+                                  parent: BouncingScrollPhysics(),
+                                ),
+                                children: [
+                                  // ── 1. Book PDF Card (Uploaded or Upload CTA) ──
+                                  BookPdfCard(
+                                    document: _bookDocuments.isNotEmpty
+                                        ? _bookDocuments.first
+                                        : null,
+                                    onPreview: hasBookPdf
+                                        ? () => _openPdfUrl(_bookDocuments.first['file_url'])
+                                        : null,
+                                    onUpload: _uploadWholeBook,
+                                  ),
+                                  const SizedBox(height: 22),
 
                               // ── 2. Section Header: Chapters ──
                               Row(
@@ -452,7 +495,7 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
                                 const SizedBox(height: 10),
 
                                 // ── 4. Add Chapter Action Box at list end ──
-                                if (_pollingTimers.isEmpty)
+                                if (!_isBookProcessing)
                                   AddChapterTile(
                                     onTap: _openAddChapterSheet,
                                   ),
@@ -464,9 +507,11 @@ class _BookChaptersScreenState extends State<BookChaptersScreen> {
           ],
         ),
       ),
-      floatingActionButton: _buildAddChapterFab(),
-    );
-  }
+    ),
+  ),
+  floatingActionButton: _isBookProcessing ? null : _buildAddChapterFab(),
+);
+}
 
   Widget _buildAddChapterFab() {
     return Container(

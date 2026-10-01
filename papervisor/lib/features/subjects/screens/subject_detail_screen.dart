@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import '../../../../services/api_client.dart';
@@ -127,10 +128,14 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
       final String fullUrl = urlPath.startsWith('http')
           ? urlPath
           : 'https://revisit-humongous-wiry.ngrok-free.dev$urlPath';
+          // : 'https://100.60.191.242.sslip.io$urlPath';
 
       final response = await http.get(
         Uri.parse(fullUrl),
-        headers: token != null ? {'Authorization': 'Bearer $token'} : {},
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
       );
 
       if (!mounted) return;
@@ -279,48 +284,56 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
   Widget build(BuildContext context) {
     final subjectName = widget.subject['name'] as String? ?? 'Subject';
     final totalPapers = _aiPapers.length + _refPapers.length;
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final hPadding = isDesktop ? 36.0 : (isTablet ? 28.0 : 20.0);
 
     return Scaffold(
       backgroundColor: AuthTheme.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 20.0,
-            right: 20.0,
-            top: 14.0,
-          ),
-          child: Column(
-            children: [
-              // Contextual Subject Header
-              SubjectDetailHeader(
-                subjectName: subjectName,
-                bookCount: _books.length,
-                paperCount: totalPapers,
-                onBack: () => Navigator.pop(context),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1050),
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: hPadding,
+                right: hPadding,
+                top: 14.0,
               ),
+              child: Column(
+                children: [
+                  // Contextual Subject Header
+                  SubjectDetailHeader(
+                    subjectName: subjectName,
+                    bookCount: _books.length,
+                    paperCount: totalPapers,
+                    onBack: () => Navigator.pop(context),
+                  ),
 
-              const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-              // Segmented Tabs: Books & Papers
-              SubjectDetailTabs(
-                controller: _tabController,
-                bookCount: _books.length,
-                paperCount: totalPapers,
+                  // Segmented Tabs: Books & Papers
+                  SubjectDetailTabs(
+                    controller: _tabController,
+                    bookCount: _books.length,
+                    paperCount: totalPapers,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Tab Views
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildBooksTab(),
+                        _buildPapersTab(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 16),
-
-              // Tab Views
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildBooksTab(),
-                    _buildPapersTab(),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

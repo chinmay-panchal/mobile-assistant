@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../auth/theme/auth_theme.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../../services/book_service.dart';
 import '../../../../services/chapter_service.dart';
 import '../models/paper_wizard_state.dart';
@@ -84,104 +85,125 @@ class _PaperWizardScreenState extends State<PaperWizardScreen> {
   }
 
   void _openWeightageSheet({String? focusChapterId}) {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final selectedChapters = _chapters.where(
-              (c) => _state.selectedChapterIds.contains(c['id']),
-            ).toList();
-            final total = _state.totalChapterWeightage;
-            final isExact100 = total == 100;
+      maxWidth: 540,
+      builder: (modalContext, isDialog) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: isDialog
+                ? BorderRadius.circular(24)
+                : const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              final selectedChapters = _chapters.where(
+                (c) => _state.selectedChapterIds.contains(c['id']),
+              ).toList();
+              final total = _state.totalChapterWeightage;
+              final isExact100 = total == 100;
 
-            return SafeArea(
-              child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.85,
-                ),
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  12,
-                  20,
-                  MediaQuery.of(context).viewInsets.bottom + 16,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Drag handle
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFCBD5E1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Title and Quick Balance action
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Chapter Weightage',
-                              style: TextStyle(
-                                fontFamily: AuthTheme.fontFamily,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: AuthTheme.textPrimary,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Target total weightage: 100%',
-                              style: TextStyle(
-                                fontFamily: AuthTheme.fontFamily,
-                                fontSize: 12,
-                                color: AuthTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+              return SafeArea(
+                top: false,
+                bottom: !isDialog,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * (isDialog ? 0.82 : 0.85),
+                  ),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    isDialog ? 20 : 12,
+                    20,
+                    isDialog ? 20 : MediaQuery.of(context).viewInsets.bottom + 16,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isDialog) ...[
+                        // Drag handle
+                        Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(2),
                             ),
                           ),
-                          icon: const Icon(Icons.restart_alt_rounded, size: 16, color: AuthTheme.textSecondary),
-                          label: const Text(
-                            'Equalize',
-                            style: TextStyle(
-                              fontFamily: AuthTheme.fontFamily,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AuthTheme.textSecondary,
-                            ),
-                          ),
-                          onPressed: () {
-                            setModalState(() {
-                              _state.recalculateDefaultWeightages();
-                            });
-                            setState(() {});
-                          },
                         ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
+
+                      // Title and Quick Balance action
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Chapter Weightage',
+                                style: TextStyle(
+                                  fontFamily: AuthTheme.fontFamily,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: AuthTheme.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Target total weightage: 100%',
+                                style: TextStyle(
+                                  fontFamily: AuthTheme.fontFamily,
+                                  fontSize: 12,
+                                  color: AuthTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  backgroundColor: const Color(0xFFF1F5F9),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.restart_alt_rounded, size: 16, color: AuthTheme.textSecondary),
+                                label: const Text(
+                                  'Equalize',
+                                  style: TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AuthTheme.textSecondary,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  setModalState(() {
+                                    _state.recalculateDefaultWeightages();
+                                  });
+                                  setState(() {});
+                                },
+                              ),
+                              if (isDialog) ...[
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  onPressed: () => Navigator.pop(modalContext),
+                                  icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                                  splashRadius: 18,
+                                  tooltip: 'Close',
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 14),
 
                     // Total Weightage Indicator Bar
@@ -381,7 +403,7 @@ class _PaperWizardScreenState extends State<PaperWizardScreen> {
                           ),
                           elevation: 0,
                         ),
-                        onPressed: () => Navigator.pop(bottomSheetContext),
+                        onPressed: () => Navigator.pop(modalContext),
                         child: const Text(
                           'Done',
                           style: TextStyle(
@@ -397,10 +419,11 @@ class _PaperWizardScreenState extends State<PaperWizardScreen> {
               ),
             );
           },
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -408,15 +431,19 @@ class _PaperWizardScreenState extends State<PaperWizardScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // Top Step Header (No back arrow)
-            WizardStepHeader(
-              subjectName: widget.subject['name'] ?? 'Subject',
-              currentStep: 1,
-              title: 'Select Chapters',
-              subtitle: 'Choose the source book and chapters for questions',
-            ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 860),
+            child: Column(
+                children: [
+                // Top Step Header
+                WizardStepHeader(
+                  subjectName: widget.subject['name'] ?? 'Subject',
+                  currentStep: 1,
+                  title: 'Select Chapters',
+                  subtitle: 'Choose the source book and chapters for questions',
+                  onBack: () => Navigator.pop(context),
+                ),
 
             // Main Content Area
             Expanded(
@@ -1089,6 +1116,8 @@ class _PaperWizardScreenState extends State<PaperWizardScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

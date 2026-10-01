@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../services/api_client.dart';
 
@@ -6,7 +7,9 @@ class DocumentService {
   final ApiClient _apiClient = ApiClient();
 
   Future<Map<String, dynamic>> uploadDocument({
-    required String filePath,
+    String? filePath,
+    Uint8List? fileBytes,
+    String? fileName,
     required String bookId,
     String? chapterId,
   }) async {
@@ -14,6 +17,7 @@ class DocumentService {
     final uri = Uri.parse('${ApiClient.baseUrl}/documents/upload');
 
     final request = http.MultipartRequest('POST', uri);
+    request.headers['ngrok-skip-browser-warning'] = 'true';
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
@@ -23,7 +27,17 @@ class DocumentService {
       request.fields['chapter_id'] = chapterId;
     }
 
-    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    if (fileBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: fileName ?? 'document.pdf',
+      ));
+    } else if (filePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    } else {
+      throw Exception('Either filePath or fileBytes must be provided.');
+    }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);

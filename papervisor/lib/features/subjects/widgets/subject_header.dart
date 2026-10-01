@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Contextual workspace header displaying the workspace name, subject count badge,
@@ -17,12 +19,43 @@ class SubjectHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showWebBack = kIsWeb && !Responsive.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Top Navigation & Workspace Identity Bar
         Row(
           children: [
+            // Optional Back Navigation Button (Shown on Web Desktop/Tablet only, hidden on phones)
+            if (onBack != null && showWebBack) ...[
+              Tooltip(
+                message: 'Back to Workspaces',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onBack,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 18,
+                        color: AuthTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
+
             // Workspace Icon Badge
             Container(
               width: 36,

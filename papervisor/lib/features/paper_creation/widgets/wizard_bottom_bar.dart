@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 
-/// Sticky bottom action bar used across all Paper Creation Wizard steps.
-/// Provides a consistent, elevated action container with optional helper/status
-/// badges and the primary action button.
+/// Clean, seamless bottom action bar used across all Paper Creation Wizard steps.
+/// Fits directly into the screen canvas without a rectangular white box or border.
 class WizardBottomBar extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -25,23 +24,11 @@ class WizardBottomBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
-        12,
+        8,
         20,
-        12 + MediaQuery.of(context).padding.bottom,
+        16 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(
-          top: BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
+      color: Colors.transparent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

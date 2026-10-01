@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -43,6 +43,7 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
   bool _isSaved = false; // true after a successful save
   late Map<String, dynamic> _paper;
   List<CustomElement> _customElements = [];
+  double _zoomLevel = 1.0;
 
   @override
   void initState() {
@@ -55,53 +56,64 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
     final files = await FilePicker.pickFiles(type: FileType.image);
     if (files.isEmpty) return;
 
-    // Step 2: Save bytes to a temp file so ImageCropper can read it via path
     final rawBytes = await files.first.readAsBytes();
-    final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/logo_temp.png');
-    await tempFile.writeAsBytes(rawBytes);
+    if (rawBytes.isEmpty) return;
 
-    // Step 3: Launch cropper
-    if (!mounted) return;
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: tempFile.path,
-      compressFormat: ImageCompressFormat.png,
-      compressQuality: 100,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Logo',
-          toolbarColor: AuthTheme.primary,
-          toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: AuthTheme.primary,
-          cropFrameColor: AuthTheme.primary,
-          cropGridColor: AuthTheme.primaryLight,
-          lockAspectRatio: false,
-          hideBottomControls: false,
-          initAspectRatio: CropAspectRatioPreset.original,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.ratio4x3,
-          ],
-        ),
-        IOSUiSettings(
-          title: 'Crop Logo',
-          cancelButtonTitle: 'Cancel',
-          doneButtonTitle: 'Done',
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.ratio4x3,
-          ],
-        ),
-      ],
-    );
+    Uint8List? croppedBytes;
 
-    // Step 4: Read cropped bytes and update state
-    if (cropped != null) {
-      final croppedBytes = await cropped.readAsBytes();
+    if (kIsWeb) {
+      croppedBytes = rawBytes;
+    } else {
+      // Step 2: Save bytes to a temp file so ImageCropper can read it via path
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/logo_temp.png');
+      await tempFile.writeAsBytes(rawBytes);
+
+      // Step 3: Launch cropper
+      if (!mounted) return;
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: tempFile.path,
+        compressFormat: ImageCompressFormat.png,
+        compressQuality: 100,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Logo',
+            toolbarColor: AuthTheme.primary,
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: AuthTheme.primary,
+            cropFrameColor: AuthTheme.primary,
+            cropGridColor: AuthTheme.primaryLight,
+            lockAspectRatio: false,
+            hideBottomControls: false,
+            initAspectRatio: CropAspectRatioPreset.original,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Crop Logo',
+            cancelButtonTitle: 'Cancel',
+            doneButtonTitle: 'Done',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+            ],
+          ),
+        ],
+      );
+
+      if (cropped != null) {
+        croppedBytes = await cropped.readAsBytes();
+      }
+    }
+
+    // Step 4: Update state
+    if (croppedBytes != null) {
       setState(() {
         _logoBytes = croppedBytes;
         _isSaved = false; // Logo changed → mark unsaved
@@ -134,71 +146,74 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Padding(
-          padding: const EdgeInsets.all(22.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
-                ),
-                child: const Icon(
-                  Icons.cloud_upload_outlined,
-                  color: Color(0xFF0284C7),
-                  size: 26,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Save Paper to Cloud?',
-                style: TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AuthTheme.textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "After saving this paper to the cloud, you won't be able to edit it anymore on the app.",
-                style: TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: AuthTheme.textSecondary,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: AuthPrimaryButton(
-                      text: 'Cancel',
-                      isSecondary: true,
-                      height: 44,
-                      onPressed: () => Navigator.pop(ctx, false),
-                    ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.all(22.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AuthPrimaryButton(
-                      text: 'OK',
-                      height: 44,
-                      onPressed: () => Navigator.pop(ctx, true),
-                    ),
+                  child: const Icon(
+                    Icons.cloud_upload_outlined,
+                    color: Color(0xFF0284C7),
+                    size: 26,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Save Paper to Cloud?',
+                  style: TextStyle(
+                    fontFamily: AuthTheme.fontFamily,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AuthTheme.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "After saving this paper to the cloud, you won't be able to edit it anymore on the app.",
+                  style: TextStyle(
+                    fontFamily: AuthTheme.fontFamily,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: AuthTheme.textSecondary,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuthPrimaryButton(
+                        text: 'Cancel',
+                        isSecondary: true,
+                        height: 44,
+                        onPressed: () => Navigator.pop(ctx, false),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AuthPrimaryButton(
+                        text: 'OK',
+                        height: 44,
+                        onPressed: () => Navigator.pop(ctx, true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -356,25 +371,136 @@ class _PdfPreviewScreenState extends State<PdfPreviewScreen> {
 
             // Document Canvas Area
             Expanded(
-              child: PdfPreview(
-                // ValueKey forces full rebuild of PdfPreview when logo/elements change
-                key: ValueKey('${_logoBytes.hashCode}_${_customElements.length}'),
-                build: (format) => _generatePdfBytes(format),
-                pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
-                canChangeOrientation: false,
-                canChangePageFormat: false,
-                canDebug: false,
-                useActions: false,
-                allowPrinting: false,
-                allowSharing: false,
-                actions: const [], // Hides default bottom bar
-                scrollViewDecoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
-                ),
-                previewPageMargin: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
-                ),
+              child: Stack(
+                children: [
+                  PdfPreview.builder(
+                    // ValueKey forces full rebuild of PdfPreview when logo/elements change
+                    key: ValueKey('${_logoBytes.hashCode}_${_customElements.length}'),
+                    build: _generatePdfBytes,
+                    pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
+                    maxPageWidth: 720,
+                    canChangeOrientation: false,
+                    canChangePageFormat: false,
+                    canDebug: false,
+                    useActions: false,
+                    allowPrinting: false,
+                    allowSharing: false,
+                    actions: const [], // Hides default bottom bar
+                    scrollViewDecoration: const BoxDecoration(
+                      color: Color(0xFFF1F5F9),
+                    ),
+                    pagesBuilder: (context, pages) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWebOrDesktop = MediaQuery.of(context).size.width >= 768;
+                          final baseWidth = isWebOrDesktop ? 720.0 : (constraints.maxWidth - 28);
+                          final targetWidth = baseWidth * _zoomLevel;
+
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (int i = 0; i < pages.length; i++) ...[
+                                    GestureDetector(
+                                      onDoubleTap: () {
+                                        setState(() {
+                                          _zoomLevel = _zoomLevel == 1.0 ? 1.25 : 1.0;
+                                        });
+                                      },
+                                      child: Container(
+                                        width: targetWidth,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(4),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Color(0x1F000000),
+                                              blurRadius: 10,
+                                              offset: Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: Image(
+                                          image: pages[i].image,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
+                                    if (i < pages.length - 1) const SizedBox(height: 18),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+
+                  // Floating Zoom Controls (Web & Desktop friendly)
+                  Positioned(
+                    bottom: 20,
+                    right: 20,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove_rounded, size: 18),
+                              tooltip: 'Zoom out',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: _zoomLevel > 0.6
+                                  ? () => setState(() => _zoomLevel = (_zoomLevel - 0.15).clamp(0.5, 2.0))
+                                  : null,
+                            ),
+                            InkWell(
+                              onTap: () => setState(() => _zoomLevel = 1.0),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                child: Text(
+                                  '${(_zoomLevel * 100).round()}%',
+                                  style: const TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AuthTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              tooltip: 'Zoom in',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: _zoomLevel < 1.8
+                                  ? () => setState(() => _zoomLevel = (_zoomLevel + 0.15).clamp(0.5, 2.0))
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
