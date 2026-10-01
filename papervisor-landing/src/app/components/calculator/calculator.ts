@@ -63,15 +63,8 @@ import { FormsModule } from '@angular/forms';
               <!-- Slider 3: Average Salary Per Teacher Per Day (8 hours) -->
               <div class="input-card mt-6">
                 <div class="flex justify-between items-center mb-2">
-                  <div class="flex items-center gap-2">
-                    <label class="calc-label">Avg Salary Per Teacher Per Day (8 hrs)</label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="calc-value font-mono text-emerald">{{ currencySymbol() }}{{ formatNumber(dailySalary()) }} / Day</span>
-                    <button type="button" class="currency-toggle-btn" (click)="toggleCurrency()" title="Toggle Currency ($ / ₹)">
-                      {{ currency() === 'USD' ? '₹ INR' : '$ USD' }}
-                    </button>
-                  </div>
+                  <label class="calc-label">Avg Salary Per Teacher Per Day (8 hrs)</label>
+                  <span class="calc-value font-mono text-emerald">{{ currencySymbol() }}{{ formatNumber(dailySalary()) }} / Day</span>
                 </div>
                 <input type="range" 
                        [min]="minSalary()" 
