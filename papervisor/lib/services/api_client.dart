@@ -6,7 +6,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiClient {
   // Using ADB reverse port forwarding (adb reverse tcp:8000 tcp:8000) for USB connected Android device / emulator
   // static const String baseUrl = 'http://192.168.1.71:8000/api/v1';
-  static const String baseUrl = 'https://revisit-humongous-wiry.ngrok-free.dev/api/v1';
+  // static const String baseUrl = 'https://revisit-humongous-wiry.ngrok-free.dev/api/v1';
+  static const String baseUrl = 'https://100.60.191.242.sslip.io/api/v1';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
   static void Function()? onUnauthorized;
@@ -38,7 +39,9 @@ class ApiClient {
   }
 
   Map<String, String> _headers(String? token, {bool isJson = true}) {
-    final headers = <String, String>{};
+    final headers = <String, String>{
+      'ngrok-skip-browser-warning': 'true',
+    };
     if (isJson) {
       headers['Content-Type'] = 'application/json';
     }
@@ -274,7 +277,10 @@ class ApiClient {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode({'refresh_token': refreshToken}),
       );
 
