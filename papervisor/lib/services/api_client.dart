@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
-  // Using ADB reverse port forwarding (adb reverse tcp:8000 tcp:8000) for USB connected Android device / emulator
-  // static const String baseUrl = 'http://192.168.1.71:8000/api/v1';
-  // static const String baseUrl = 'https://revisit-humongous-wiry.ngrok-free.dev/api/v1';
-  static const String baseUrl = 'https://100.60.191.242.sslip.io/api/v1';
+  static String get baseUrl =>
+      dotenv.env['API_BASE_URL'] ?? 'http://192.168.1.71:8000/api/v1';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  
+
   static void Function()? onUnauthorized;
   static Future<bool>? _refreshTokenFuture;
 
@@ -21,27 +20,55 @@ class ApiClient {
     return await _storage.read(key: 'refresh_token');
   }
 
-  Future<void> saveTokens(String accessToken, String refreshToken) async {
+  Future<String?> getUserName() async {
+    return await _storage.read(key: 'user_name');
+  }
+
+  Future<String?> getUserEmail() async {
+    return await _storage.read(key: 'user_email');
+  }
+
+  Future<void> saveTokens(
+    String accessToken,
+    String refreshToken, {
+    String? name,
+    String? email,
+  }) async {
     await _storage.write(key: 'access_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
+    if (name != null && name.trim().isNotEmpty) {
+      await _storage.write(key: 'user_name', value: name.trim());
+    }
+    if (email != null && email.trim().isNotEmpty) {
+      await _storage.write(key: 'user_email', value: email.trim());
+    }
     if (kDebugMode) {
-      print('[ApiClient] Tokens saved successfully.');
+      //       print('[ApiClient] Tokens and user info saved successfully.');
+    }
+  }
+
+  Future<void> saveUserInfo({String? name, String? email}) async {
+    if (name != null && name.trim().isNotEmpty) {
+      await _storage.write(key: 'user_name', value: name.trim());
+    }
+    if (email != null && email.trim().isNotEmpty) {
+      await _storage.write(key: 'user_email', value: email.trim());
     }
   }
 
   Future<void> clearTokens() async {
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
+    await _storage.delete(key: 'user_name');
+    await _storage.delete(key: 'user_email');
     if (kDebugMode) {
-      print('[ApiClient] Tokens cleared.');
+      //       print('[ApiClient] Tokens and profile info cleared.');
     }
     onUnauthorized?.call();
   }
 
   Map<String, String> _headers(String? token, {bool isJson = true}) {
-    final headers = <String, String>{
-      'ngrok-skip-browser-warning': 'true',
-    };
+    final headers = <String, String>{'ngrok-skip-browser-warning': 'true'};
     if (isJson) {
       headers['Content-Type'] = 'application/json';
     }
@@ -53,17 +80,14 @@ class ApiClient {
 
   void _logResponse(String method, int statusCode, String body) {
     if (!kDebugMode) return;
-    print('[ApiClient] $method Response [$statusCode] (length: ${body.length}) ->');
-    for (int i = 0; i < body.length; i += 800) {
-      print(body.substring(i, i + 800 > body.length ? body.length : i + 800));
-    }
+    debugPrint('[$method] Response [$statusCode]');
   }
 
   Future<http.Response> get(String endpoint) async {
     final token = await getAccessToken();
     final url = Uri.parse('$baseUrl$endpoint');
     if (kDebugMode) {
-      print('[ApiClient] GET Request -> $url');
+      //       print('[ApiClient] GET Request -> $url');
     }
 
     try {
@@ -80,8 +104,8 @@ class ApiClient {
       return response;
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] GET $url failed: $e');
-        print(stackTrace);
+        //         print('[ApiClient ERROR] GET $url failed: $e');
+        //         print(stackTrace);
       }
       rethrow;
     }
@@ -97,7 +121,7 @@ class ApiClient {
     final payload = body != null ? jsonEncode(body) : null;
 
     if (kDebugMode) {
-      print('[ApiClient] POST Request -> $url | Body: $payload');
+      //       print('[ApiClient] POST Request -> $url | Body: $payload');
     }
 
     try {
@@ -108,7 +132,6 @@ class ApiClient {
       );
 
       _logResponse('POST', response.statusCode, response.body);
-
 
       if (requiresAuth && response.statusCode == 401) {
         final refreshed = await _refreshToken();
@@ -124,8 +147,8 @@ class ApiClient {
       return response;
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] POST $url failed: $e');
-        print(stackTrace);
+        //         print('[ApiClient ERROR] POST $url failed: $e');
+        //         print(stackTrace);
       }
       rethrow;
     }
@@ -140,7 +163,7 @@ class ApiClient {
     final payload = body != null ? jsonEncode(body) : null;
 
     if (kDebugMode) {
-      print('[ApiClient] PUT Request -> $url | Body: $payload');
+      //       print('[ApiClient] PUT Request -> $url | Body: $payload');
     }
 
     try {
@@ -151,7 +174,6 @@ class ApiClient {
       );
 
       _logResponse('PUT', response.statusCode, response.body);
-
 
       if (response.statusCode == 401) {
         final refreshed = await _refreshToken();
@@ -167,8 +189,8 @@ class ApiClient {
       return response;
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] PUT $url failed: $e');
-        print(stackTrace);
+        //         print('[ApiClient ERROR] PUT $url failed: $e');
+        //         print(stackTrace);
       }
       rethrow;
     }
@@ -183,7 +205,7 @@ class ApiClient {
     final payload = body != null ? jsonEncode(body) : null;
 
     if (kDebugMode) {
-      print('[ApiClient] PATCH Request -> $url | Body: $payload');
+      //       print('[ApiClient] PATCH Request -> $url | Body: $payload');
     }
 
     try {
@@ -194,7 +216,6 @@ class ApiClient {
       );
 
       _logResponse('PATCH', response.statusCode, response.body);
-
 
       if (response.statusCode == 401) {
         final refreshed = await _refreshToken();
@@ -210,8 +231,8 @@ class ApiClient {
       return response;
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] PATCH $url failed: $e');
-        print(stackTrace);
+        //         print('[ApiClient ERROR] PATCH $url failed: $e');
+        //         print(stackTrace);
       }
       rethrow;
     }
@@ -222,14 +243,13 @@ class ApiClient {
     final url = Uri.parse('$baseUrl$endpoint');
 
     if (kDebugMode) {
-      print('[ApiClient] DELETE Request -> $url');
+      //       print('[ApiClient] DELETE Request -> $url');
     }
 
     try {
       var response = await http.delete(url, headers: _headers(token));
 
       _logResponse('DELETE', response.statusCode, response.body);
-
 
       if (response.statusCode == 401) {
         final refreshed = await _refreshToken();
@@ -241,8 +261,8 @@ class ApiClient {
       return response;
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] DELETE $url failed: $e');
-        print(stackTrace);
+        //         print('[ApiClient ERROR] DELETE $url failed: $e');
+        //         print(stackTrace);
       }
       rethrow;
     }
@@ -251,7 +271,7 @@ class ApiClient {
   Future<bool> _refreshToken() async {
     if (_refreshTokenFuture != null) {
       if (kDebugMode) {
-        print('[ApiClient] Token refresh already in progress. Awaiting existing refresh request...');
+        //         print('[ApiClient] Token refresh already in progress. Awaiting existing refresh request...');
       }
       return await _refreshTokenFuture!;
     }
@@ -271,7 +291,7 @@ class ApiClient {
 
     final url = Uri.parse('$baseUrl/auth/refresh');
     if (kDebugMode) {
-      print('[ApiClient] Attempting token refresh -> $url');
+      //       print('[ApiClient] Attempting token refresh -> $url');
     }
 
     try {
@@ -286,7 +306,6 @@ class ApiClient {
 
       _logResponse('POST (Refresh Token)', response.statusCode, response.body);
 
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         await saveTokens(data['access_token'], data['refresh_token']);
@@ -297,7 +316,7 @@ class ApiClient {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[ApiClient ERROR] Token refresh failed: $e');
+        //         print('[ApiClient ERROR] Token refresh failed: $e');
       }
       await clearTokens();
       return false;

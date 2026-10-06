@@ -116,13 +116,17 @@ class ExploreHeader extends StatelessWidget {
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(AuthTheme.radiusSmall),
+                      borderRadius: BorderRadius.circular(
+                        AuthTheme.radiusSmall,
+                      ),
                       onTap: onHistoryTap,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(AuthTheme.radiusSmall),
+                          borderRadius: BorderRadius.circular(
+                            AuthTheme.radiusSmall,
+                          ),
                           border: Border.all(color: AuthTheme.inputBorder),
                         ),
                         child: const Icon(
@@ -138,8 +142,14 @@ class ExploreHeader extends StatelessWidget {
                       top: -4,
                       right: -4,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF0284C7),
                           shape: BoxShape.circle,

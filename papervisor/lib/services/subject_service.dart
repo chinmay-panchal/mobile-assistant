@@ -1,33 +1,64 @@
 import 'dart:convert';
 import '../services/api_client.dart';
+import 'cache_service.dart';
 
 class SubjectService {
   final ApiClient _apiClient = ApiClient();
+  final CacheService _cacheService = CacheService.instance;
 
-  Future<List<Map<String, dynamic>>> getSubjects(String workspaceId) async {
-    final response = await _apiClient.get('/workspaces/$workspaceId/subjects');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      try {
+  /// Returns cached subjects for a workspace immediately if available
+  Future<List<Map<String, dynamic>>?> getCachedSubjects(
+    String workspaceId,
+  ) async {
+    return _cacheService.getSubjects(workspaceId);
+  }
+
+  /// Synchronous in-memory cached subjects check
+  List<Map<String, dynamic>>? getCachedSubjectsSync(String workspaceId) {
+    return _cacheService.getSubjectsSync(workspaceId);
+  }
+
+  Future<List<Map<String, dynamic>>> getSubjects(
+    String workspaceId, {
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/workspaces/$workspaceId/subjects',
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final list = data.cast<Map<String, dynamic>>();
+        await _cacheService.cacheSubjects(workspaceId, list);
+        return list;
+      } else {
         final error = jsonDecode(response.body);
         throw Exception(error['detail'] ?? 'Failed to load subjects');
-      } catch (e) {
-        if (e is FormatException) {
-          throw Exception('An unexpected server error occurred.');
-        }
-        rethrow;
       }
+    } catch (e) {
+      // Offline / network failure fallback to cache if available
+      final cached = await _cacheService.getSubjects(workspaceId);
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+      if (e is FormatException) {
+        throw Exception('An unexpected server error occurred.');
+      }
+      rethrow;
     }
   }
 
-  Future<Map<String, dynamic>> createSubject(String workspaceId, String name, String code) async {
+  Future<Map<String, dynamic>> createSubject(
+    String workspaceId,
+    String name,
+    String code,
+  ) async {
     final response = await _apiClient.post(
       '/workspaces/$workspaceId/subjects',
       body: {'name': name, 'code': code},
     );
     if (response.statusCode == 201) {
+      await _cacheService.invalidateSubjects(workspaceId);
       return jsonDecode(response.body);
     } else {
       try {
@@ -59,12 +90,16 @@ class SubjectService {
     }
   }
 
-  Future<Map<String, dynamic>> updateSubject(String subjectId, String name) async {
+  Future<Map<String, dynamic>> updateSubject(
+    String subjectId,
+    String name,
+  ) async {
     final response = await _apiClient.patch(
       '/subjects/$subjectId',
       body: {'name': name},
     );
     if (response.statusCode == 200) {
+      await _cacheService.invalidateAllSubjects();
       return jsonDecode(response.body);
     } else {
       try {
@@ -91,6 +126,8 @@ class SubjectService {
         }
         rethrow;
       }
+    } else {
+      await _cacheService.invalidateAllSubjects();
     }
   }
 }

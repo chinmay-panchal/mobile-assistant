@@ -1,4 +1,4 @@
-package com.example.papervisor
+package com.papervisor.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -7,10 +7,7 @@ import '../constants/explore_assets.dart';
 class ExploreEmptyState extends StatelessWidget {
   final ValueChanged<String> onSuggestionSelected;
 
-  const ExploreEmptyState({
-    super.key,
-    required this.onSuggestionSelected,
-  });
+  const ExploreEmptyState({super.key, required this.onSuggestionSelected});
 
   static const List<String> _suggestions = [
     'Find Physics PYQs',
@@ -100,9 +97,14 @@ class ExploreEmptyState extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
                     onTap: () => onSuggestionSelected(suggestion),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
+                        borderRadius: BorderRadius.circular(
+                          AuthTheme.radiusPill,
+                        ),
                         border: Border.all(color: const Color(0xFFBAE6FD)),
                         boxShadow: [
                           BoxShadow(

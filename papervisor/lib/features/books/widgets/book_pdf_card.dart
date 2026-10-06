@@ -7,12 +7,7 @@ class BookPdfCard extends StatelessWidget {
   final VoidCallback? onPreview;
   final VoidCallback? onUpload;
 
-  const BookPdfCard({
-    super.key,
-    this.document,
-    this.onPreview,
-    this.onUpload,
-  });
+  const BookPdfCard({super.key, this.document, this.onPreview, this.onUpload});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +18,14 @@ class BookPdfCard extends StatelessWidget {
     }
   }
 
-  Widget _buildUploadedDocumentCard(BuildContext context, Map<String, dynamic> doc) {
+  Widget _buildUploadedDocumentCard(
+    BuildContext context,
+    Map<String, dynamic> doc,
+  ) {
     final status = (doc['status'] ?? '').toString().toUpperCase();
     final isReady = status == 'READY';
-    final isProcessing = status == 'PROCESSING' || status == 'UPLOADED' || status == 'EMBEDDING';
+    final isProcessing =
+        status == 'PROCESSING' || status == 'UPLOADED' || status == 'EMBEDDING';
     final isFailed = status == 'FAILED';
 
     Color statusColor;
@@ -78,7 +77,9 @@ class BookPdfCard extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
             border: Border.all(
-              color: isReady ? const Color(0xFFCBD5E1) : const Color(0xFFE2E8F0),
+              color: isReady
+                  ? const Color(0xFFCBD5E1)
+                  : const Color(0xFFE2E8F0),
             ),
             boxShadow: [
               BoxShadow(
@@ -150,9 +151,10 @@ class BookPdfCard extends StatelessWidget {
                                       height: 8,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 1.5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          statusColor,
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              statusColor,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(width: 5),
@@ -227,7 +229,9 @@ class BookPdfCard extends StatelessWidget {
                     value: progress,
                     backgroundColor: const Color(0xFFE2E8F0),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      progress >= 0.75 ? AuthTheme.primary : const Color(0xFFF59E0B),
+                      progress >= 0.75
+                          ? AuthTheme.primary
+                          : const Color(0xFFF59E0B),
                     ),
                     minHeight: 5,
                   ),

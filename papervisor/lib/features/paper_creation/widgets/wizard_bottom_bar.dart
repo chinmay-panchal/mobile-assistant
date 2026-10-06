@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../auth/widgets/auth_primary_button.dart';
+import '../../workspace/widgets/workspace_primary_button.dart';
 
 /// Clean, seamless bottom action bar used across all Paper Creation Wizard steps.
-/// Fits directly into the screen canvas without a rectangular white box or border.
+/// Fits directly into the screen canvas without camouflaging into the dark/light background.
 class WizardBottomBar extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -37,11 +37,13 @@ class WizardBottomBar extends StatelessWidget {
             helperWidget!,
             const SizedBox(height: 10),
           ],
-          AuthPrimaryButton(
+          WorkspacePrimaryButton(
             text: text,
             onPressed: onPressed,
             isLoading: isLoading,
-            icon: icon != null ? Icon(icon, color: Colors.white, size: 18) : null,
+            icon: icon != null
+                ? Icon(icon, color: Colors.white, size: 18)
+                : null,
             height: 52,
           ),
         ],

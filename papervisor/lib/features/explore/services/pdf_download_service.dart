@@ -154,7 +154,9 @@ class PdfDownloadService {
 
       // --- Save valid PDF to disk (on Web, return url directly) ---
       if (kIsWeb) {
-        debugPrint('[PdfDownloadService] SUCCESS: Web platform detected, returning URL directly: $url');
+        debugPrint(
+          '[PdfDownloadService] SUCCESS: Web platform detected, returning URL directly: $url',
+        );
         return url;
       }
       final dir = await getApplicationDocumentsDirectory();

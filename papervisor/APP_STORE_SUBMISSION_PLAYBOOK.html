@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Papervisor — App Store & Google Play Submission Playbook</title>
+<style>
+  
+
+  @page {
+    size: A4;
+    margin: 14mm 14mm 16mm 14mm;
+    @bottom-right {
+      content: "Page " counter(page);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8pt;
+      color: #94a3b8;
+    }
+    @bottom-left {
+      content: "Papervisor Submission Playbook • Confidential";
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8pt;
+      color: #94a3b8;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    line-height: 1.5;
+    font-size: 9pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Headings */
+  h1 {
+    font-size: 19pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #1e293b;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 5px;
+    margin: 22px 0 10px 0;
+    page-break-after: avoid;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #334155;
+    margin: 14px 0 6px 0;
+    page-break-after: avoid;
+  }
+
+  p { margin: 0 0 8px 0; }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+  }
+  .badge-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge-primary { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+  .badge-danger  { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+  .badge-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .badge-info    { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .badge-neutral { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px 0;
+    font-size: 8.5pt;
+    page-break-inside: auto;
+  }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  th {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+    padding: 7px 9px;
+    font-size: 8pt;
+    letter-spacing: 0.02em;
+    border: 1px solid #0f172a;
+  }
+  td {
+    padding: 6px 9px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+
+  /* Cards & Callouts */
+  .callout-danger {
+    background: #fff5f5;
+    border-left: 4px solid #ef4444;
+    border: 1px solid #fecaca;
+    border-left-width: 4px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  .callout-info {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #3b82f6;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+
+  .field-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    page-break-inside: avoid;
+  }
+  .field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-weight: 700;
+    font-size: 8.5pt;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .field-value {
+    font-family: Courier, monospace;
+    background: #f1f5f9;
+    padding: 8px 10px;
+    border-radius: 4px;
+    color: #0f172a;
+    font-size: 8.5pt;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border: 1px solid #e2e8f0;
+  }
+
+  .banner-header {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .banner-header h1 { color: #ffffff; margin-bottom: 3px; }
+  .banner-meta {
+    font-size: 8pt;
+    color: #94a3b8;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .banner-meta span { color: #cbd5e1; font-weight: 600; }
+
+  .legend-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 7.5pt;
+  }
+  .legend-title { font-weight: 700; color: #475569; margin-right: 4px; }
+
+  .code-font { font-family: Courier, monospace; font-size: 8pt; }
+  .text-danger { color: #b91c1c; font-weight: 700; }
+  .text-success { color: #15803d; font-weight: 600; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="banner-header">
+  <h1>Papervisor</h1>
+  <div style="font-size: 11pt; font-weight: 600; color: #818cf8;">App Store & Google Play Console Submission Playbook</div>
+  <div class="banner-meta">
+    <div>Target: <span>Android & iOS Release</span></div>
+    <div>Flutter: <span>3.44.1</span></div>
+    <div>Dart: <span>3.12.1</span></div>
+    <div>Version: <span>1.0.0 (Build 1)</span></div>
+    <div>Document Version: <span>Final Verified Edition</span></div>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <span class="legend-title">STATUS LABELS:</span>
+  <span class="badge badge-success">✓ Codebase Confirmed</span>
+  <span class="badge badge-primary">★ Platform Rule</span>
+  <span class="badge badge-danger">🚨 Action Required / Blocker</span>
+  <span class="badge badge-warning">⚠ Needs Input</span>
+  <span class="badge badge-info">💡 Recommendation</span>
+  <span class="badge badge-neutral">📄 Copy Template</span>
+</div>
+
+<h2>🚨 Current Submission Blockers (Resolve Before Release)</h2>
+<p style="color: #64748b;">These issues were identified during code inspection and will cause store rejections or runtime crashes if not corrected prior to release compilation:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%;">Blocker Item</th>
+      <th style="width: 14%;">Platform</th>
+      <th style="width: 24%;">Codebase Root Cause</th>
+      <th style="width: 40%;">Exact Fix Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Default Package ID</strong><br><span class="badge badge-danger">Blocker</span></td>
+      <td>Google Play<br>App Store</td>
+      <td><span class="code-font">applicationId = "com.papervisor.app"</span> in build.gradle.kts & project.pbxproj</td>
+      <td>Replace with unique production package ID (e.g. <span class="code-font">com.papervisor.app</span>) in both Android and iOS configurations.</td>
+    </tr>
+    <tr>
+      <td><strong>Missing Internet Permission</strong><br><span class="badge badge-danger">Runtime Blocker</span></td>
+      <td>Android</td>
+      <td><span class="code-font">INTERNET</span> permission only present in <span class="code-font">debug/AndroidManifest.xml</span>; missing in <span class="code-font">main/</span>.</td>
+      <td>Add <span class="code-font">&lt;uses-permission android:name="android.permission.INTERNET"/&gt;</span> to <span class="code-font">android/app/src/main/AndroidManifest.xml</span>.</td>
+    </tr>
+    <tr>
+      <td><strong>Account Deletion Missing</strong><br><span class="badge badge-danger">Apple Guideline 5.1.1(v)</span></td>
+      <td>Apple & Google</td>
+      <td>App allows user registration in <span class="code-font">AuthService.dart</span> but has no delete account button or endpoint.</td>
+      <td>Add in-app "Delete Account" flow calling backend removal endpoint + provide public web deletion request link.</td>
+    </tr>
+    <tr>
+      <td><strong>Debug Signing in Release</strong><br><span class="badge badge-danger">Build Blocker</span></td>
+      <td>Android</td>
+      <td><span class="code-font">buildTypes.release</span> uses debug signing configuration.</td>
+      <td>Generate production <span class="code-font">upload-keystore.jks</span> and configure production signing in <span class="code-font">android/app/build.gradle.kts</span>.</td>
+    </tr>
+    <tr>
+      <td><strong>iOS Photo Library String</strong><br><span class="badge badge-danger">App Review Risk</span></td>
+      <td>iOS</td>
+      <td><span class="code-font">file_picker</span> and <span class="code-font">image_cropper</span> used for logos; <span class="code-font">NSPhotoLibraryUsageDescription</span> missing in Info.plist.</td>
+      <td>Add <span class="code-font">&lt;key&gt;NSPhotoLibraryUsageDescription&lt;/key&gt;</span> with purpose description in <span class="code-font">ios/Runner/Info.plist</span>.</td>
+    </tr>
+    <tr>
+      <td><strong>Privacy Policy URL</strong><br><span class="badge badge-warning">Needs Input</span></td>
+      <td>Both Stores</td>
+      <td>Required web URL not yet provided in store declarations.</td>
+      <td>Host and link an active HTTPS privacy policy covering user accounts, PDF uploads, and AI inference data handling.</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer Demo Account</strong><br><span class="badge badge-warning">Needs Input</span></td>
+      <td>Both Stores</td>
+      <td>App gates all screens behind login gate.</td>
+      <td>Provide active test credentials (<span class="code-font">appreview@papervisor.com</span>) pre-loaded with sample subjects/books in review notes.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>1. App Identity & Configuration</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Console Field</th>
+      <th style="width: 35%;">Project Value</th>
+      <th style="width: 18%;">Classification</th>
+      <th style="width: 22%;">Notes / Evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>App Name</strong></td>
+      <td><strong>Papervisor</strong></td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td>CFBundleDisplayName in Info.plist; android:label</td>
+    </tr>
+    <tr>
+      <td><strong>Android Application ID</strong></td>
+      <td><span class="code-font text-danger">com.papervisor.app</span> (Must Change)</td>
+      <td><span class="badge badge-danger">Action Required</span></td>
+      <td>Set in <span class="code-font">android/app/build.gradle.kts</span> line 19</td>
+    </tr>
+    <tr>
+      <td><strong>iOS Bundle Identifier</strong></td>
+      <td><span class="code-font text-danger">com.papervisor.app</span> (Must Change)</td>
+      <td><span class="badge badge-danger">Action Required</span></td>
+      <td>Set in <span class="code-font">ios/Runner.xcodeproj/project.pbxproj</span></td>
+    </tr>
+    <tr>
+      <td><strong>Version Name & Build</strong></td>
+      <td><strong>1.0.0</strong> (Build Number: <strong>1</strong>)</td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td><span class="code-font">version: 1.0.0+1</span> in pubspec.yaml</td>
+    </tr>
+    <tr>
+      <td><strong>Flutter / Dart Version</strong></td>
+      <td>Flutter <strong>3.44.1</strong> / Dart <strong>3.12.1</strong></td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td>Active environment runtime</td>
+    </tr>
+    <tr>
+      <td><strong>Android SDK Versions</strong></td>
+      <td>Min: <strong>21</strong> • Target: <strong>34/35</strong> • Compile: <strong>37</strong></td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td>Verified in <span class="code-font">android/app/build.gradle.kts</span></td>
+    </tr>
+    <tr>
+      <td><strong>Primary / Secondary Category</strong></td>
+      <td><strong>Education</strong> / <strong>Productivity</strong></td>
+      <td><span class="badge badge-info">Recommendation</span></td>
+      <td>Assessment & question bank generator</td>
+    </tr>
+    <tr>
+      <td><strong>Monetization</strong></td>
+      <td><strong>Free</strong> (Zero IAP, Zero Subscriptions)</td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td>No billing SDKs in <span class="code-font">pubspec.yaml</span></td>
+    </tr>
+    <tr>
+      <td><strong>Offline Support</strong></td>
+      <td><strong>NO</strong> (Internet mandatory)</td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td>Requires connection for backend & AI synthesis</td>
+    </tr>
+    <tr>
+      <td><strong>Login Required</strong></td>
+      <td><strong>YES</strong> (Mandatory JWT authentication)</td>
+      <td><span class="badge badge-success">Codebase</span></td>
+      <td><span class="code-font">_AuthGate</span> in <span class="code-font">lib/main.dart</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>2. Data-Flow Architecture (First-Party vs. Third-Party)</h2>
+<p style="color: #64748b;">Where data travels when an educator uses Papervisor. Declarations in Google Data Safety and Apple App Privacy must match this data journey:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Data Element</th>
+      <th>App</th>
+      <th>Papervisor Backend</th>
+      <th>Google Gemini AI</th>
+      <th>None (Disabled)</th>
+      <th>Retention & Storage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Name & Email</strong></td>
+      <td>Collected</td>
+      <td>Transmitted & Stored</td>
+      <td>Not Sent</td>
+      <td>Not Sent</td>
+      <td>Stored securely in backend database</td>
+    </tr>
+    <tr>
+      <td><strong>Password</strong></td>
+      <td>Collected</td>
+      <td>Hashed & Stored</td>
+      <td>Not Sent</td>
+      <td>Not Sent</td>
+      <td>One-way hashed/salted on backend</td>
+    </tr>
+    <tr>
+      <td><strong>Auth Tokens (JWT)</strong></td>
+      <td>Stored Local</td>
+      <td>Validated on API calls</td>
+      <td>Not Sent</td>
+      <td>Not Sent</td>
+      <td>Encrypted in Android KeyStore / iOS Keychain</td>
+    </tr>
+    <tr>
+      <td><strong>Textbook Chapter PDFs</strong></td>
+      <td>Selected</td>
+      <td>Uploaded via Multipart</td>
+      <td>Not Sent</td>
+      <td>Not Sent</td>
+      <td>Stored on server for question synthesis</td>
+    </tr>
+    <tr>
+      <td><strong>Custom Logos / Diagrams</strong></td>
+      <td>Selected</td>
+      <td>Embedded in Saved PDF</td>
+      <td>Not Sent</td>
+      <td>Not Sent</td>
+      <td>Saved within PDF document files</td>
+    </tr>
+    <tr>
+      <td><strong>PYQ Search Queries</strong></td>
+      <td>User Types</td>
+      <td>Not Sent</td>
+      <td>Prompt text sent for clarification</td>
+      <td>Search query sent to search endpoint</td>
+      <td>Ephemeral API session processing</td>
+    </tr>
+    <tr>
+      <td><strong>Downloaded PYQ PDF Bytes</strong></td>
+      <td>Downloaded</td>
+      <td>Not Sent</td>
+      <td>Inline PDF bytes sent for verification</td>
+      <td>Not Sent</td>
+      <td>Evaluated ephemerally; saved in local SQLite if starred</td>
+    </tr>
+    <tr>
+      <td><strong>Analytics / Ad Tracking</strong></td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>Zero third-party tracking or advertising SDKs</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Store Listing Copy (Ready to Paste)</h2>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>App Name (Google Play & Apple App Store)</span>
+    <span>Max 30 Chars • Actual: 29</span>
+  </div>
+  <div class="field-value">Papervisor — AI Exam Creator</div>
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Subtitle (Apple App Store)</span>
+    <span>Max 30 Chars • Actual: 28</span>
+  </div>
+  <div class="field-value">Exam Papers, Rubrics & PYQs</div>
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Short Description (Google Play Console)</span>
+    <span>Max 80 Chars • Actual: 76</span>
+  </div>
+  <div class="field-value">Create balanced, curriculum-aligned exam papers & rubrics in minutes with AI.</div>
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Full Description (Google Play & Apple App Store)</span>
+    <span>Max 4,000 Chars • Actual: ~1,850</span>
+  </div>
+  <div class="field-value">Papervisor is an intelligent exam paper generation and assessment suite built for educators, academic department heads, schools, and tutoring institutions.
+
+Streamline your exam creation workflow. Papervisor allows you to transform curriculum textbooks and chapter PDFs into balanced, structured examination papers with custom blueprints and rubrics.
+
+CORE FEATURES:
+
+• Chapter-Grounded Question Synthesis
+Upload your curriculum textbooks and chapter notes. Papervisor uses your source materials to draft questions tailored to your syllabus topics.
+
+• Granular Blueprint & Weightage Control
+Customize every parameter of your exam: total marks, time limit, difficulty distribution (Easy / Medium / Hard percentages), numerical-to-theory ratios, and exact chapter-wise mark distributions.
+
+• Visual Designer & Layout Editor
+Preview your exam paper in real time. Add institutional headers, watermarks, custom instructions, and section headers (Section A: MCQs, Section B: Short Answer, Section C: Long Problems). Edit question text, replace choices, or re-order sections.
+
+• Print-Ready Vector PDF Export
+Export formatted PDFs with integrated answer keys and marking schemes. Print directly from your mobile device via system printing or share via email and cloud storage.
+
+• Previous Year Papers (PYQ) Explorer
+Search and inspect past year board and entrance examination papers (CBSE, ICSE, JEE, NEET, GATE, State Boards) with automated query refinement and document inspection.
+
+• Organized Academic Workspaces
+Organize teaching materials by Academic Year, Class/Grade, and Subject. Manage multiple question banks and book chapters from a single workspace.
+
+Designed to assist educators with academic integrity at its core. Your documents and test banks remain private to your educator account.</div>
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Keywords (Apple App Store Connect)</span>
+    <span>Max 100 Chars • Actual: 99 (Comma-separated, no spaces)</span>
+  </div>
+  <div class="field-value">exam maker,test generator,question paper,cbse,jee,teacher tools,curriculum,rubric,ai quiz,assessment</div>
+</div>
+
+<div class="page-break"></div>
+
+<h2>4. Google Play Console Form Answers</h2>
+
+<h3>A. Content Rating Questionnaire (IARC)</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 35%;">Questionnaire Item</th>
+      <th style="width: 15%;">Answer</th>
+      <th style="width: 50%;">Reason / Project Evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Violence, Sexual Content, Drugs, Gambling</td>
+      <td><strong>NO</strong></td>
+      <td>Academic utility application; zero adult or restricted themes.</td>
+    </tr>
+    <tr>
+      <td>User Interaction / Direct Messaging</td>
+      <td><strong>NO</strong></td>
+      <td>No social networking, public feeds, or direct messaging between users.</td>
+    </tr>
+    <tr>
+      <td>Physical Location Sharing</td>
+      <td><strong>NO</strong></td>
+      <td>Zero GPS or geolocation tracking code in project.</td>
+    </tr>
+    <tr>
+      <td>In-App Purchases / Digital Goods</td>
+      <td><strong>NO</strong></td>
+      <td>No payment processing or in-app purchase libraries.</td>
+    </tr>
+    <tr>
+      <td>Unrestricted Web Access</td>
+      <td><strong>NO</strong></td>
+      <td>Does not contain a general web browser.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>B. Target Audience & App Declarations</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 35%;">Declaration Field</th>
+      <th style="width: 15%;">Answer</th>
+      <th style="width: 50%;">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Target Age Group</td>
+      <td><strong>18+, 16-17</strong></td>
+      <td>Designed for teachers, professors, and secondary/tertiary students.</td>
+    </tr>
+    <tr>
+      <td>Unintentionally Appeal to Children?</td>
+      <td><strong>NO</strong></td>
+      <td>Formal educational assessment UI; dark theme; curriculum parameters.</td>
+    </tr>
+    <tr>
+      <td>Contains Ads?</td>
+      <td><strong>NO</strong></td>
+      <td>Zero ad SDKs in pubspec.yaml.</td>
+    </tr>
+    <tr>
+      <td>Uses Advertising ID (AAID)?</td>
+      <td><strong>NO</strong></td>
+      <td><span class="code-font">com.google.android.gms.permission.AD_ID</span> is not declared.</td>
+    </tr>
+    <tr>
+      <td>Generative AI Disclosure</td>
+      <td><strong>YES</strong></td>
+      <td>Acknowledge use of Google Gemini API for drafting questions.</td>
+    </tr>
+    <tr>
+      <td>Government, Health, Financial, VPN</td>
+      <td><strong>NO</strong></td>
+      <td>None of these restricted categories apply.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>C. Google Play Data Safety Form Mapping</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Data Type</th>
+      <th>Collected?</th>
+      <th>Shared?</th>
+      <th>Purpose</th>
+      <th>Required?</th>
+      <th>Storage Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Name</strong></td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>Account Management</td>
+      <td>Required</td>
+      <td>Stored on Papervisor backend DB</td>
+    </tr>
+    <tr>
+      <td><strong>Email Address</strong></td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality, Auth</td>
+      <td>Required</td>
+      <td>Stored on Papervisor backend DB</td>
+    </tr>
+    <tr>
+      <td><strong>User IDs</strong></td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>Account Management</td>
+      <td>Required</td>
+      <td>Stored in JWT token payload</td>
+    </tr>
+    <tr>
+      <td><strong>Files & Documents</strong></td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality</td>
+      <td>Required</td>
+      <td>Uploaded chapter PDFs for question synthesis</td>
+    </tr>
+    <tr>
+      <td><strong>Photos & Images</strong></td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality</td>
+      <td>Optional</td>
+      <td>Custom exam logos embedded in generated PDFs</td>
+    </tr>
+    <tr>
+      <td><strong>Search Queries</strong></td>
+      <td>YES</td>
+      <td>YES (API)</td>
+      <td>App Functionality</td>
+      <td>Optional</td>
+      <td>Sent to Gemini ephemerally for question generation</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout-info">
+  <strong>Data Safety Global Questions:</strong><br>
+  • Encrypted in transit? ➔ <strong>YES</strong> (All network requests use HTTPS).<br>
+  • Data deletion mechanism? ➔ <strong>YES</strong> (Once account deletion button/URL is live).<br>
+  • Shared with third parties? ➔ <strong>YES</strong> (Gemini AI inference during active sessions).
+</div>
+
+<h2>5. Apple App Store Connect Form Answers</h2>
+
+<h3>A. App Privacy (Nutrition Labels)</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Apple Category</th>
+      <th>Collected?</th>
+      <th>Linked to User?</th>
+      <th>Tracking?</th>
+      <th>Purpose</th>
+      <th>Evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Contact Info (Name, Email)</strong></td>
+      <td>YES</td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality</td>
+      <td>AuthService.dart login/registration</td>
+    </tr>
+    <tr>
+      <td><strong>User Content (Files & Photos)</strong></td>
+      <td>YES</td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality</td>
+      <td>Textbook PDFs & exam header logos</td>
+    </tr>
+    <tr>
+      <td><strong>Identifiers (User ID)</strong></td>
+      <td>YES</td>
+      <td>YES</td>
+      <td>NO</td>
+      <td>App Functionality</td>
+      <td>Internal user account ID</td>
+    </tr>
+    <tr>
+      <td><strong>App Tracking Transparency (ATT)</strong></td>
+      <td>NO</td>
+      <td>NO</td>
+      <td>NO</td>
+      <td>N/A</td>
+      <td>Zero cross-app tracking or ad networks</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>B. App Review Information & Credentials</h3>
+<div class="callout-danger">
+  <strong>MANDATORY REVIEWER ACCOUNT:</strong> Apple reviewers require working credentials to review the app. Gated apps without test credentials will be rejected immediately under <strong>Guideline 2.1 (App Completeness)</strong>.
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>App Review Demo Credentials</span>
+    <span>Enter in App Review Information Section</span>
+  </div>
+  <div class="field-value">Sign-in Required: YES
+Username: appreview@papervisor.com
+Password: [ENTER_SECURE_DEMO_PASSWORD]
+
+Notes for Reviewer:
+"This test account has been pre-configured with sample subjects (e.g. Physics) and uploaded textbook chapters so you can immediately test the 4-step exam paper generator wizard, visual layout editor, and vector PDF export without needing to upload external files."</div>
+</div>
+
+<div class="page-break"></div>
+
+<h2>6. Testing Workflows & Platform Rules</h2>
+
+<h3>Google Play Closed Testing (Personal Accounts)</h3>
+<div class="callout-info">
+  <strong>Platform Rule:</strong> Personal accounts created after Nov 13, 2023 must run a closed test with at least <strong>20 opted-in testers for 14 continuous days</strong> before production access can be requested.
+</div>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Tester Invitation Message (WhatsApp / Email)</span>
+    <span>Copy & Send to Testers</span>
+  </div>
+  <div class="field-value">Hi [NAME],
+
+I am preparing to release Papervisor, an AI-assisted exam paper creation tool for educators and students.
+
+Google Play requires our app to be tested by 20 opted-in testers for 14 continuous days before it can be made publicly available.
+
+HOW TO TEST:
+1. Join our Google Testing Group:
+   [GOOGLE_GROUP_URL]
+2. Accept the web opt-in invitation:
+   https://play.google.com/apps/testing/[PACKAGE_ID]
+3. Install the app on your Android device via Google Play.
+
+Please keep the app installed for 14 days and test creating an exam paper or searching for past year papers. If you encounter any bugs, reply directly to this message.
+
+Thank you for your help!</div>
+</div>
+
+<h3>Apple TestFlight</h3>
+<p>Unlike Google Play, Apple TestFlight does <strong>not</strong> require 20 testers for 14 continuous days. Internal testing is available immediately. External beta testing requires standard automated Beta App Review (typically approved within hours).</p>
+
+<h2>7. Fast Copy-Paste Cheat Sheet</h2>
+
+<div class="field-card">
+  <div class="field-header">
+    <span>Quick-Fill Dashboard (Keep Beside Console)</span>
+    <span>All Essential Fields</span>
+  </div>
+  <div class="field-value">APP NAME: Papervisor — AI Exam Creator
+SUBTITLE (iOS): Exam Papers, Rubrics & PYQs
+VERSION: 1.0.0
+BUILD: 1
+PRIMARY CATEGORY: Education
+SECONDARY CATEGORY: Productivity
+APP TYPE: Application (Non-Game)
+MONETIZATION: Free (No IAP, No Ads)
+LOGIN REQUIRED: Yes
+DEMO USERNAME: appreview@papervisor.com
+DEMO PASSWORD: [DEMO_PASSWORD]
+MARKETING URL: https://landing.100.60.191.242.sslip.io/
+SUPPORT URL: https://landing.100.60.191.242.sslip.io/#faq
+PRIVACY POLICY URL: [PRIVACY_POLICY_URL]
+CONTAINS ADS: No
+USES ADVERTISING ID: No
+DATA COLLECTED: Name, Email, Uploaded Files/PDFs, Custom Logos
+DATA ENCRYPTED: Yes (HTTPS / TLS)
+EXPORT COMPLIANCE (iOS): Exempt (ITSAppUsesNonExemptEncryption = false)
+CONTENT RATING: Everyone / PEGI 3 / 4+</div>
+</div>
+
+<div style="text-align: center; color: #94a3b8; font-size: 8pt; margin-top: 24px;">
+  Generated for Papervisor • Project Path: /Users/shadowwolf/Development/Frontend-Series/papervisor
+</div>
+
+</body>
+</html>

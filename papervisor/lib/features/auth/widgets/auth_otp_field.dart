@@ -25,6 +25,7 @@ class AuthOtpField extends StatefulWidget {
 class _AuthOtpFieldState extends State<AuthOtpField> {
   late List<TextEditingController> _controllers;
   late List<FocusNode> _focusNodes;
+  late List<FocusNode> _keyboardFocusNodes;
   bool _internalUpdate = false;
 
   @override
@@ -32,6 +33,7 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
     super.initState();
     _controllers = List.generate(widget.length, (_) => TextEditingController());
     _focusNodes = List.generate(widget.length, (_) => FocusNode());
+    _keyboardFocusNodes = List.generate(widget.length, (_) => FocusNode());
 
     // Sync from parent controller
     _syncFromParent();
@@ -76,6 +78,9 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
     for (final f in _focusNodes) {
       f.dispose();
     }
+    for (final f in _keyboardFocusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -88,7 +93,9 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
         _controllers[i].text = char;
       }
       _updateParent();
-      final nextIndex = digits.length < widget.length ? digits.length : widget.length - 1;
+      final nextIndex = digits.length < widget.length
+          ? digits.length
+          : widget.length - 1;
       _focusNodes[nextIndex].requestFocus();
       return;
     }
@@ -118,7 +125,7 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
       width: 48,
       height: 56,
       child: KeyboardListener(
-        focusNode: FocusNode(),
+        focusNode: _keyboardFocusNodes[index],
         onKeyEvent: (event) {
           if (event is KeyDownEvent &&
               event.logicalKey == LogicalKeyboardKey.backspace &&
@@ -132,20 +139,39 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
           builder: (context, _) {
             final isFocused = _focusNodes[index].hasFocus;
             final hasValue = _controllers[index].text.isNotEmpty;
+            final isDark = Theme.of(context).brightness == Brightness.dark;
 
             return Container(
-              decoration: ShapeDecoration(
-                color: isFocused ? Colors.white : AuthTheme.inputBg,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AuthTheme.radiusSmall),
-                  side: BorderSide(
-                    color: isFocused
-                        ? AuthTheme.primary
-                        : (hasValue ? AuthTheme.primary.withValues(alpha: 0.35) : AuthTheme.inputBorder),
-                    width: isFocused ? 2.0 : 1.0,
-                  ),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : (isFocused ? Colors.white : AuthTheme.inputBg),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isFocused
+                      ? (isDark ? const Color(0xFF38BDF8) : AuthTheme.primary)
+                      : (hasValue
+                            ? (isDark
+                                  ? Colors.white70
+                                  : AuthTheme.primary.withValues(alpha: 0.5))
+                            : (isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFCBD5E1))),
+                  width: isFocused ? 2.0 : 1.5,
                 ),
-                shadows: isFocused ? AuthTheme.fieldFocusShadow : null,
+                boxShadow: isFocused
+                    ? (isDark
+                          ? [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF38BDF8,
+                                ).withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : AuthTheme.fieldFocusShadow)
+                    : null,
               ),
               child: Center(
                 child: TextField(
@@ -153,17 +179,21 @@ class _AuthOtpFieldState extends State<AuthOtpField> {
                   focusNode: _focusNodes[index],
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AuthTheme.textPrimary,
+                    color: isDark
+                        ? const Color(0xFFF8FAFC)
+                        : AuthTheme.textPrimary,
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(6), // Allow paste
                   ],
-                  cursorColor: AuthTheme.primary,
+                  cursorColor: isDark
+                      ? const Color(0xFF38BDF8)
+                      : AuthTheme.primary,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,

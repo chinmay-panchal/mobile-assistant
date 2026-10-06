@@ -1,54 +1,64 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Modern segmented pill tab bar for switching between Books and Papers.
 class SubjectDetailTabs extends StatelessWidget {
   final TabController controller;
   final int bookCount;
   final int paperCount;
+  final bool isLoadingBooks;
+  final bool isLoadingPapers;
 
   const SubjectDetailTabs({
     super.key,
     required this.controller,
     required this.bookCount,
     required this.paperCount,
+    this.isLoadingBooks = false,
+    this.isLoadingPapers = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
+
     return Container(
       height: 48,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9), // Soft Slate Tray
+        color: WorkspaceTheme.surfaceMuted,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: WorkspaceTheme.borderSubtle),
       ),
       child: TabBar(
         controller: controller,
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         indicator: BoxDecoration(
-          color: Colors.white,
+          color: WorkspaceTheme.surfaceWhite,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
+              color: Colors.black.withValues(
+                alpha: WorkspaceTheme.isDark ? 0.3 : 0.06,
+              ),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        labelColor: AuthTheme.primary,
-        unselectedLabelColor: AuthTheme.textSecondary,
-        labelStyle: const TextStyle(
-          fontFamily: AuthTheme.fontFamily,
+        labelColor: WorkspaceTheme.textPrimary,
+        unselectedLabelColor: WorkspaceTheme.textSecondary,
+        labelStyle: TextStyle(
+          fontFamily: WorkspaceTheme.fontFamily,
           fontSize: 13,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.1,
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontFamily: AuthTheme.fontFamily,
+        unselectedLabelStyle: TextStyle(
+          fontFamily: WorkspaceTheme.fontFamily,
           fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
@@ -62,20 +72,34 @@ class SubjectDetailTabs extends StatelessWidget {
                 const Text('Books'),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: WorkspaceTheme.canvas,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    '$bookCount',
-                    style: const TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AuthTheme.textPrimary,
-                    ),
-                  ),
+                  child: isLoadingBooks
+                      ? SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: WorkspaceTheme.isDark
+                                ? const Color(0xFF38BDF8)
+                                : WorkspaceTheme.accentCobalt,
+                          ),
+                        )
+                      : Text(
+                          '$bookCount',
+                          style: TextStyle(
+                            fontFamily: WorkspaceTheme.fontFamily,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: WorkspaceTheme.textPrimary,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -89,20 +113,34 @@ class SubjectDetailTabs extends StatelessWidget {
                 const Text('Papers'),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: WorkspaceTheme.canvas,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    '$paperCount',
-                    style: const TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AuthTheme.textPrimary,
-                    ),
-                  ),
+                  child: isLoadingPapers
+                      ? SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: WorkspaceTheme.isDark
+                                ? const Color(0xFF38BDF8)
+                                : WorkspaceTheme.accentCobalt,
+                          ),
+                        )
+                      : Text(
+                          '$paperCount',
+                          style: TextStyle(
+                            fontFamily: WorkspaceTheme.fontFamily,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: WorkspaceTheme.textPrimary,
+                          ),
+                        ),
                 ),
               ],
             ),

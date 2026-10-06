@@ -6,16 +6,16 @@ class AuthTheme {
   // Font Family
   static const String fontFamily = 'PlusJakartaSans';
 
-  // Surface & Ambient Canvas
-  static const Color background = Color(0xFFF8FAFC); // Slate-50
+  // Surface & Ambient Canvas (Pure Light Palette)
+  static const Color background = Color(0xFFF8FAFC);
   static const Color surfaceWhite = Color(0xFFFFFFFF);
-  
+
   // Ambient Accent Surfaces (Crisp White + Sky Blue + Obsidian Slate)
-  static const Color pastelBlue = Color(0xFFEFF6FF); // Sky-50
-  static const Color pastelPurple = Color(0xFFEFF6FF); // Sky-50
-  static const Color pastelPink = Color(0xFFF8FAFC); // Slate-50
-  static const Color pastelMint = Color(0xFFF1F5F9); // Slate-100
-  static const Color pastelCyan = Color(0xFFE0F2FE); // Sky-100
+  static const Color pastelBlue = Color(0xFFEFF6FF);
+  static const Color pastelPurple = Color(0xFFEFF6FF);
+  static const Color pastelPink = Color(0xFFF8FAFC);
+  static const Color pastelMint = Color(0xFFF1F5F9);
+  static const Color pastelCyan = Color(0xFFE0F2FE);
 
   // Primary Accent & Gradient (Obsidian Slate Authority)
   static const Color primary = Color(0xFF0F172A); // Slate-900
@@ -41,10 +41,7 @@ class AuthTheme {
   static const LinearGradient primaryGradientPressed = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF0F172A),
-      Color(0xFF020617),
-    ],
+    colors: [Color(0xFF0F172A), Color(0xFF020617)],
   );
 
   // Input Field Colors with Sky Blue focus glow
@@ -63,7 +60,7 @@ class AuthTheme {
   static const Color error = Color(0xFFEF4444);
   static const Color errorLight = Color(0xFFFEF2F2);
   static const Color errorBorder = Color(0xFFFECACA);
-  
+
   static const Color success = Color(0xFF10B981);
   static const Color successLight = Color(0xFFECFDF5);
 

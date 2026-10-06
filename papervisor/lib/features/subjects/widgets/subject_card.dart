@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Modern, tactile subject card featuring pastel color identity,
 /// deterministic icon assignment, book counter, and contextual action menu.
@@ -28,15 +28,15 @@ class SubjectCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AuthTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-        border: Border.all(color: AuthTheme.inputBorder, width: 1.2),
-        boxShadow: AuthTheme.cardShadow,
+        color: WorkspaceTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+        border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
+        boxShadow: WorkspaceTheme.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+          borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(14.0),
@@ -53,13 +53,21 @@ class SubjectCard extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: WorkspaceTheme.isDark
+                            ? const Color(0xFF151F32)
+                            : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFBAE6FD)),
+                        border: Border.all(
+                          color: WorkspaceTheme.isDark
+                              ? const Color(0xFF1E40AF)
+                              : const Color(0xFFBAE6FD),
+                        ),
                       ),
                       child: Icon(
                         subjectIcon,
-                        color: const Color(0xFF0284C7),
+                        color: WorkspaceTheme.isDark
+                            ? const Color(0xFF38BDF8)
+                            : const Color(0xFF0284C7),
                         size: 20,
                       ),
                     ),
@@ -71,15 +79,20 @@ class SubjectCard extends StatelessWidget {
                         height: 28,
                         child: PopupMenuButton<String>(
                           padding: EdgeInsets.zero,
+                          color: WorkspaceTheme.surfaceWhite,
                           icon: Icon(
                             Icons.more_vert_rounded,
-                            color: AuthTheme.textSecondary.withValues(alpha: 0.7),
+                            color: WorkspaceTheme.textSecondary.withValues(
+                              alpha: 0.7,
+                            ),
                             size: 18,
                           ),
                           splashRadius: 16,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
-                            side: const BorderSide(color: AuthTheme.inputBorder),
+                            side: BorderSide(
+                              color: WorkspaceTheme.borderSubtle,
+                            ),
                           ),
                           elevation: 4,
                           shadowColor: Colors.black.withValues(alpha: 0.08),
@@ -89,38 +102,46 @@ class SubjectCard extends StatelessWidget {
                           },
                           itemBuilder: (context) => [
                             if (onEdit != null)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'edit',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.edit_outlined, size: 18, color: AuthTheme.textPrimary),
-                                    SizedBox(width: 10),
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 18,
+                                      color: WorkspaceTheme.textPrimary,
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       'Edit Subject',
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
-                                        color: AuthTheme.textPrimary,
+                                        color: WorkspaceTheme.textPrimary,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             if (onDelete != null)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'delete',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.delete_outline_rounded, size: 18, color: AuthTheme.error),
-                                    SizedBox(width: 10),
-                                    Text(
+                                    const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 18,
+                                      color: WorkspaceTheme.error,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Text(
                                       'Delete Subject',
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: AuthTheme.error,
+                                        color: WorkspaceTheme.error,
                                       ),
                                     ),
                                   ],
@@ -139,11 +160,11 @@ class SubjectCard extends StatelessWidget {
                   children: [
                     Text(
                       name.toUpperCase(),
-                      style: const TextStyle(
-                        fontFamily: AuthTheme.fontFamily,
+                      style: TextStyle(
+                        fontFamily: WorkspaceTheme.fontFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                         letterSpacing: -0.2,
                         height: 1.25,
                       ),
@@ -153,19 +174,19 @@ class SubjectCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.menu_book_rounded,
                           size: 12,
-                          color: AuthTheme.textTertiary,
+                          color: WorkspaceTheme.textTertiary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '$bookCount ${bookCount == 1 ? "book" : "books"}',
-                          style: const TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
+                          style: TextStyle(
+                            fontFamily: WorkspaceTheme.fontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AuthTheme.textSecondary,
+                            color: WorkspaceTheme.textSecondary,
                           ),
                         ),
                       ],

@@ -1,49 +1,61 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Clean dashed-border action tile to trigger the Add Book action.
 class AddBookTile extends StatelessWidget {
   final VoidCallback onTap;
 
-  const AddBookTile({
-    super.key,
-    required this.onTap,
-  });
+  const AddBookTile({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+            color: WorkspaceTheme.surfaceMuted,
+            borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
           ),
           child: CustomPaint(
             painter: _DashedBorderPainter(
-              borderRadius: AuthTheme.radiusCard,
-              color: const Color(0xFFC7D2FE),
+              borderRadius: WorkspaceTheme.radiusCard,
+              color: WorkspaceTheme.borderSubtle,
               strokeWidth: 1.5,
               dashLength: 6,
               dashGap: 4,
             ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 20.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 18.0,
+                horizontal: 20.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_rounded, color: AuthTheme.primary, size: 20),
-                  SizedBox(width: 8),
+                  Icon(
+                    Icons.add_rounded,
+                    color: WorkspaceTheme.isDark
+                        ? const Color(0xFF38BDF8)
+                        : WorkspaceTheme.primaryDark,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
                     'Add Book',
                     style: TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
+                      fontFamily: WorkspaceTheme.fontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: AuthTheme.primary,
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF38BDF8)
+                          : WorkspaceTheme.primaryDark,
                       letterSpacing: -0.2,
                     ),
                   ),

@@ -1,42 +1,83 @@
 import 'dart:convert';
 import '../services/api_client.dart';
+import 'cache_service.dart';
 
 class BookService {
   final ApiClient _apiClient = ApiClient();
+  final CacheService _cacheService = CacheService.instance;
 
-  Future<List<Map<String, dynamic>>> getAllBooks() async {
-    final response = await _apiClient.get('/books');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      try {
+  /// Returns cached books for a subject immediately if available
+  Future<List<Map<String, dynamic>>?> getCachedBooks(String subjectId) async {
+    return _cacheService.getBooks(subjectId);
+  }
+
+  /// Synchronous in-memory cached books check
+  List<Map<String, dynamic>>? getCachedBooksSync(String subjectId) {
+    return _cacheService.getBooksSync(subjectId);
+  }
+
+  /// Returns all cached books immediately if available
+  Future<List<Map<String, dynamic>>?> getCachedAllBooks() async {
+    return _cacheService.getAllBooks();
+  }
+
+  /// Synchronous in-memory all cached books check
+  List<Map<String, dynamic>>? getCachedAllBooksSync() {
+    return _cacheService.getAllBooksSync();
+  }
+
+  Future<List<Map<String, dynamic>>> getAllBooks({
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final response = await _apiClient.get('/books');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final list = data.cast<Map<String, dynamic>>();
+        await _cacheService.cacheAllBooks(list);
+        return list;
+      } else {
         final error = jsonDecode(response.body);
         throw Exception(error['detail'] ?? 'Failed to load books');
-      } catch (e) {
-        if (e is FormatException) {
-          throw Exception('An unexpected server error occurred.');
-        }
-        rethrow;
       }
+    } catch (e) {
+      // Offline / network failure fallback to cache if available
+      final cached = await _cacheService.getAllBooks();
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+      if (e is FormatException) {
+        throw Exception('An unexpected server error occurred.');
+      }
+      rethrow;
     }
   }
 
-  Future<List<Map<String, dynamic>>> getBooks(String subjectId) async {
-    final response = await _apiClient.get('/subjects/$subjectId/books');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.cast<Map<String, dynamic>>();
-    } else {
-      try {
+  Future<List<Map<String, dynamic>>> getBooks(
+    String subjectId, {
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final response = await _apiClient.get('/subjects/$subjectId/books');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final list = data.cast<Map<String, dynamic>>();
+        await _cacheService.cacheBooks(subjectId, list);
+        return list;
+      } else {
         final error = jsonDecode(response.body);
         throw Exception(error['detail'] ?? 'Failed to load books');
-      } catch (e) {
-        if (e is FormatException) {
-          throw Exception('An unexpected server error occurred.');
-        }
-        rethrow;
       }
+    } catch (e) {
+      // Offline / network failure fallback to cache if available
+      final cached = await _cacheService.getBooks(subjectId);
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+      if (e is FormatException) {
+        throw Exception('An unexpected server error occurred.');
+      }
+      rethrow;
     }
   }
 
@@ -46,6 +87,7 @@ class BookService {
       body: {'name': name},
     );
     if (response.statusCode == 201) {
+      await _cacheService.invalidateBooks(subjectId);
       return jsonDecode(response.body);
     } else {
       try {
@@ -83,6 +125,7 @@ class BookService {
       body: {'name': name},
     );
     if (response.statusCode == 200) {
+      await _cacheService.invalidateAllBooks();
       return jsonDecode(response.body);
     } else {
       try {
@@ -109,6 +152,8 @@ class BookService {
         }
         rethrow;
       }
+    } else {
+      await _cacheService.invalidateAllBooks();
     }
   }
 }

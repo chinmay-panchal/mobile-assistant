@@ -14,8 +14,16 @@ class PdfPreviewHeader extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onSave;
   final VoidCallback? onEdit;
+  final VoidCallback? onEditContent;
+  final VoidCallback? onVisualDesigner;
+  final VoidCallback? onAddImageText;
   final VoidCallback onPrint;
   final VoidCallback onShare;
+  final VoidCallback? onStartTour;
+  final GlobalKey? saveKey;
+  final GlobalKey? editKey;
+  final GlobalKey? printKey;
+  final GlobalKey? shareKey;
 
   const PdfPreviewHeader({
     super.key,
@@ -27,8 +35,16 @@ class PdfPreviewHeader extends StatelessWidget {
     this.onBack,
     this.onSave,
     this.onEdit,
+    this.onEditContent,
+    this.onVisualDesigner,
+    this.onAddImageText,
     required this.onPrint,
     required this.onShare,
+    this.onStartTour,
+    this.saveKey,
+    this.editKey,
+    this.printKey,
+    this.shareKey,
   });
 
   @override
@@ -132,7 +148,10 @@ class PdfPreviewHeader extends StatelessWidget {
                 if (isSaved)
                   Container(
                     margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: AuthTheme.successLight,
                       borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
@@ -175,24 +194,40 @@ class PdfPreviewHeader extends StatelessWidget {
                       ),
                       child: const CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AuthTheme.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AuthTheme.primary,
+                        ),
                       ),
                     )
                   else if (onSave != null)
-                    _buildIconButton(
-                      icon: Icons.cloud_upload_outlined,
-                      tooltip: 'Save PDF',
-                      isPrimary: true,
-                      onTap: onSave!,
+                    KeyedSubtree(
+                      key: saveKey,
+                      child: _buildIconButton(
+                        icon: Icons.cloud_upload_outlined,
+                        tooltip: 'Save PDF',
+                        isPrimary: true,
+                        onTap: onSave!,
+                      ),
                     ),
 
-                  // Edit Button
-                  if (onEdit != null) ...[
+                  // Edit Button / Menu (little box beside the edit icon)
+                  if (onEditContent != null ||
+                      onVisualDesigner != null ||
+                      onAddImageText != null) ...[
                     const SizedBox(width: 6),
-                    _buildIconButton(
-                      icon: Icons.edit_outlined,
-                      tooltip: 'Edit Paper',
-                      onTap: onEdit!,
+                    KeyedSubtree(
+                      key: editKey,
+                      child: _buildEditPopupMenu(context),
+                    ),
+                  ] else if (onEdit != null) ...[
+                    const SizedBox(width: 6),
+                    KeyedSubtree(
+                      key: editKey,
+                      child: _buildIconButton(
+                        icon: Icons.edit_outlined,
+                        tooltip: 'Edit Paper',
+                        onTap: onEdit!,
+                      ),
                     ),
                   ],
                 ],
@@ -200,20 +235,35 @@ class PdfPreviewHeader extends StatelessWidget {
                 const SizedBox(width: 6),
 
                 // ── Print Button ──
-                _buildIconButton(
-                  icon: Icons.print_outlined,
-                  tooltip: 'Print',
-                  onTap: onPrint,
+                KeyedSubtree(
+                  key: printKey,
+                  child: _buildIconButton(
+                    icon: Icons.print_outlined,
+                    tooltip: 'Print',
+                    onTap: onPrint,
+                  ),
                 ),
 
                 const SizedBox(width: 6),
 
                 // ── Share Button ──
-                _buildIconButton(
-                  icon: Icons.share_outlined,
-                  tooltip: 'Share',
-                  onTap: onShare,
+                KeyedSubtree(
+                  key: shareKey,
+                  child: _buildIconButton(
+                    icon: Icons.share_outlined,
+                    tooltip: 'Share',
+                    onTap: onShare,
+                  ),
                 ),
+
+                if (onStartTour != null) ...[
+                  const SizedBox(width: 6),
+                  _buildIconButton(
+                    icon: Icons.help_outline_rounded,
+                    tooltip: 'Preview Walkthrough',
+                    onTap: onStartTour!,
+                  ),
+                ],
               ],
             ),
           ],
@@ -265,6 +315,154 @@ class PdfPreviewHeader extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEditPopupMenu(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        hoverColor: const Color(0xFFF1F5F9),
+        splashColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFF1F5F9),
+        dividerTheme: const DividerThemeData(
+          color: Color(0xFFF1F5F9),
+          thickness: 1,
+          space: 1,
+        ),
+      ),
+      child: PopupMenuButton<String>(
+        tooltip: 'Edit Paper',
+        offset: const Offset(0, 46),
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        color: Colors.white,
+        onSelected: (value) {
+          if (value == 'edit_content') {
+            onEditContent?.call();
+          } else if (value == 'visual_designer') {
+            onVisualDesigner?.call();
+            onAddImageText?.call();
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'edit_content',
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFDBEAFE)),
+                  ),
+                  child: const Icon(
+                    Icons.edit_note_rounded,
+                    size: 17,
+                    color: AuthTheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Edit content',
+                    style: TextStyle(
+                      fontFamily: AuthTheme.fontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AuthTheme.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const _SubtleMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'visual_designer',
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDFA),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFCCFBF1)),
+                  ),
+                  child: const Icon(
+                    Icons.design_services_rounded,
+                    size: 17,
+                    color: Color(0xFF0D9488),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Visual Designer',
+                    style: TextStyle(
+                      fontFamily: AuthTheme.fontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AuthTheme.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AuthTheme.inputBorder.withValues(alpha: 0.9),
+            ),
+          ),
+          child: const Icon(
+            Icons.edit_outlined,
+            size: 18,
+            color: AuthTheme.textPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Very light, subtle divider for popup menus
+class _SubtleMenuDivider extends PopupMenuEntry<Never> {
+  const _SubtleMenuDivider();
+
+  @override
+  final double height = 1;
+
+  @override
+  bool represents(void value) => false;
+
+  @override
+  State<_SubtleMenuDivider> createState() => _SubtleMenuDividerState();
+}
+
+class _SubtleMenuDividerState extends State<_SubtleMenuDivider> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFFF1F5F9),
     );
   }
 }

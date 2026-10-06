@@ -20,17 +20,18 @@ class ExploreProvider extends ChangeNotifier {
     PdfDownloadService? downloadService,
     PastDownloadsRepository? repository,
     LLMClarificationService? llmClarificationService,
-  })  : _searchService = searchService ?? PdfSearchService(),
-        _downloadService = downloadService ?? PdfDownloadService(),
-        _repository = repository ?? PastDownloadsRepository(),
-        _llmClarificationService = llmClarificationService ?? LLMClarificationService() {
+  }) : _searchService = searchService ?? PdfSearchService(),
+       _downloadService = downloadService ?? PdfDownloadService(),
+       _repository = repository ?? PastDownloadsRepository(),
+       _llmClarificationService =
+           llmClarificationService ?? LLMClarificationService() {
     _loadDownloads();
   }
 
   ExploreStatus _status = ExploreStatus.idle;
   List<DownloadedPdf> _downloads = [];
   String? _errorMessage;
-  
+
   ClarificationRequest? _clarificationRequest;
   String? _originalPrompt;
   int _searchGeneration = 0;
@@ -81,7 +82,7 @@ class ExploreProvider extends ChangeNotifier {
   /// ambiguous. If it is, moves to `clarifying` state. Otherwise, goes to download.
   Future<void> processPrompt(String prompt) async {
     final myGeneration = ++_searchGeneration;
-    
+
     _status = ExploreStatus.loading;
     _errorMessage = null;
     _originalPrompt = prompt;
@@ -89,9 +90,11 @@ class ExploreProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final clarification = await _llmClarificationService.checkAmbiguity(prompt);
+      final clarification = await _llmClarificationService.checkAmbiguity(
+        prompt,
+      );
       if (_isStale(myGeneration, prompt)) return;
-      
+
       if (clarification != null && clarification.isAmbiguous) {
         // We need clarification! Update state and wait for user input.
         _clarificationRequest = clarification;
@@ -132,9 +135,11 @@ class ExploreProvider extends ChangeNotifier {
 
     try {
       // Check if the updated prompt is STILL ambiguous (e.g. step 2 of 2)
-      final clarification = await _llmClarificationService.checkAmbiguity(updatedPrompt);
+      final clarification = await _llmClarificationService.checkAmbiguity(
+        updatedPrompt,
+      );
       if (_isStale(myGeneration, updatedPrompt)) return;
-      
+
       if (clarification != null && clarification.isAmbiguous) {
         _clarificationRequest = clarification;
         _status = ExploreStatus.clarifying;
@@ -151,25 +156,30 @@ class ExploreProvider extends ChangeNotifier {
   }
 
   /// The search & download pipeline with Gemini query enhancement and candidate ranking.
-  Future<void> _performSearchAndDownload(String prompt, int myGeneration) async {
+  Future<void> _performSearchAndDownload(
+    String prompt,
+    int myGeneration,
+  ) async {
     try {
       // Step 1: Query Enhancement via Gemini
-      final enhancedQuery = await _llmClarificationService.enhancePrompt(prompt);
+      final enhancedQuery = await _llmClarificationService.enhancePrompt(
+        prompt,
+      );
       if (_isStale(myGeneration, prompt)) return;
 
-      // Step 2: Search Tavily for up to 10 candidates
+      // Step 2: Search for up to 10 candidates
       final rawResults = await _searchService.search(enhancedQuery);
       if (_isStale(myGeneration, prompt)) return;
 
       // Step 3: Evaluate & Rank Candidates using Gemini
-      final rankedResults = await _llmClarificationService.evaluateAndRankCandidates(
-        enhancedQuery,
-        rawResults,
-      );
+      final rankedResults = await _llmClarificationService
+          .evaluateAndRankCandidates(enhancedQuery, rawResults);
       if (_isStale(myGeneration, prompt)) return;
 
       // Extract target year from prompt (e.g. 2025, 2024)
-      final yearMatch = RegExp(r'(?<!\d)(19\d{2}|20\d{2})(?!\d)').firstMatch(prompt.toLowerCase());
+      final yearMatch = RegExp(
+        r'(?<!\d)(19\d{2}|20\d{2})(?!\d)',
+      ).firstMatch(prompt.toLowerCase());
       final String? targetYear = yearMatch?.group(1);
 
       // Step 4: Loop through ranked results, download the top valid PDF
@@ -181,7 +191,9 @@ class ExploreProvider extends ChangeNotifier {
         final result = rankedResults[i];
         triedUrls.add(result.url);
         try {
-          debugPrint('[ExploreProvider] Attempting candidate #${i + 1}/${rankedResults.length}: ${result.url}');
+          debugPrint(
+            '[ExploreProvider] Attempting candidate #${i + 1}/${rankedResults.length}: ${result.url}',
+          );
           localPath = await _downloadService.download(
             result.url,
             targetYear: targetYear,
@@ -194,14 +206,18 @@ class ExploreProvider extends ChangeNotifier {
           break; // Top valid PDF found — stop iterating.
         } on PdfValidationException catch (e) {
           if (_isStale(myGeneration, prompt)) return;
-          debugPrint('[ExploreProvider] Candidate #${i + 1} rejected: ${e.message}');
+          debugPrint(
+            '[ExploreProvider] Candidate #${i + 1} rejected: ${e.message}',
+          );
         }
       }
 
       // Step 4b: If all candidates rejected, INCREASE SEARCH!
       if (localPath == null || successResult == null) {
         if (_isStale(myGeneration, prompt)) return;
-        debugPrint('[ExploreProvider] All initial candidates rejected. Increasing search scope and relaxing filters...');
+        debugPrint(
+          '[ExploreProvider] All initial candidates rejected. Increasing search scope and relaxing filters...',
+        );
 
         try {
           final expandedResults = await _searchService.search(
@@ -217,18 +233,20 @@ class ExploreProvider extends ChangeNotifier {
               .toList();
 
           if (newCandidates.isNotEmpty) {
-            final rankedExpanded = await _llmClarificationService.evaluateAndRankCandidates(
-              prompt,
-              newCandidates,
-            );
+            final rankedExpanded = await _llmClarificationService
+                .evaluateAndRankCandidates(prompt, newCandidates);
             if (_isStale(myGeneration, prompt)) return;
 
-            debugPrint('[ExploreProvider] Attempting ${rankedExpanded.length} expanded search candidates...');
+            debugPrint(
+              '[ExploreProvider] Attempting ${rankedExpanded.length} expanded search candidates...',
+            );
             for (int i = 0; i < rankedExpanded.length; i++) {
               final result = rankedExpanded[i];
               triedUrls.add(result.url);
               try {
-                debugPrint('[ExploreProvider] Attempting expanded candidate #${i + 1}/${rankedExpanded.length}: ${result.url}');
+                debugPrint(
+                  '[ExploreProvider] Attempting expanded candidate #${i + 1}/${rankedExpanded.length}: ${result.url}',
+                );
                 localPath = await _downloadService.download(
                   result.url,
                   targetYear: targetYear,
@@ -237,11 +255,15 @@ class ExploreProvider extends ChangeNotifier {
                 );
                 if (_isStale(myGeneration, prompt)) return;
                 successResult = result;
-                debugPrint('[ExploreProvider] Expanded candidate #${i + 1} SUCCEEDED!');
+                debugPrint(
+                  '[ExploreProvider] Expanded candidate #${i + 1} SUCCEEDED!',
+                );
                 break;
               } on PdfValidationException catch (e) {
                 if (_isStale(myGeneration, prompt)) return;
-                debugPrint('[ExploreProvider] Expanded candidate #${i + 1} rejected: ${e.message}');
+                debugPrint(
+                  '[ExploreProvider] Expanded candidate #${i + 1} rejected: ${e.message}',
+                );
               }
             }
           }
@@ -264,9 +286,7 @@ class ExploreProvider extends ChangeNotifier {
 
       // Step 5: Persist and update in-memory list.
       final entry = DownloadedPdf(
-        title: successResult.title.isNotEmpty
-            ? successResult.title
-            : prompt,
+        title: successResult.title.isNotEmpty ? successResult.title : prompt,
         sourceUrl: successResult.url,
         localPath: localPath,
         downloadedAt: DateTime.now(),
@@ -294,7 +314,9 @@ class ExploreProvider extends ChangeNotifier {
       await _repository.remove(pdf.localPath);
       final file = File(pdf.localPath);
       if (await file.exists()) await file.delete();
-      _downloads = _downloads.where((d) => d.localPath != pdf.localPath).toList();
+      _downloads = _downloads
+          .where((d) => d.localPath != pdf.localPath)
+          .toList();
       notifyListeners();
     } catch (e) {
       debugPrint('[ExploreProvider] removeDownload failed: $e');
@@ -325,4 +347,3 @@ class ExploreProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

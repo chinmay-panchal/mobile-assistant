@@ -13,7 +13,8 @@ class ExploreClarificationCard extends StatefulWidget {
   });
 
   @override
-  State<ExploreClarificationCard> createState() => _ExploreClarificationCardState();
+  State<ExploreClarificationCard> createState() =>
+      _ExploreClarificationCardState();
 }
 
 class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
@@ -37,7 +38,8 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
   @override
   Widget build(BuildContext context) {
     final question = widget.request.question ?? 'Please clarify your search:';
-    final options = (widget.request.options as List<dynamic>?)?.cast<String>() ?? [];
+    final options =
+        (widget.request.options as List<dynamic>?)?.cast<String>() ?? [];
     final stepIndex = widget.request.stepIndex ?? 1;
     final totalSteps = widget.request.totalSteps ?? 1;
 
@@ -113,10 +115,15 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
                       const SizedBox(width: 8),
                       // Step Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
+                          borderRadius: BorderRadius.circular(
+                            AuthTheme.radiusPill,
+                          ),
                         ),
                         child: Text(
                           '$stepIndex of $totalSteps',
@@ -153,7 +160,10 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
                       child: InkWell(
                         onTap: () => widget.onSubmit(opt),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 13,
+                          ),
                           child: Row(
                             children: [
                               Container(
@@ -162,7 +172,9 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(7),
-                                  border: Border.all(color: AuthTheme.inputBorder),
+                                  border: Border.all(
+                                    color: AuthTheme.inputBorder,
+                                  ),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -210,11 +222,19 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
                     decoration: ShapeDecoration(
                       color: const Color(0xFFF8FAFC),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AuthTheme.radiusField),
-                        side: const BorderSide(color: AuthTheme.inputBorder, width: 1.0),
+                        borderRadius: BorderRadius.circular(
+                          AuthTheme.radiusField,
+                        ),
+                        side: const BorderSide(
+                          color: AuthTheme.inputBorder,
+                          width: 1.0,
+                        ),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
                     child: Row(
                       children: [
                         const Icon(
@@ -244,7 +264,9 @@ class _ExploreClarificationCardState extends State<ExploreClarificationCard> {
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
                               filled: false,
-                              contentPadding: EdgeInsets.symmetric(vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
                               isDense: true,
                             ),
                           ),

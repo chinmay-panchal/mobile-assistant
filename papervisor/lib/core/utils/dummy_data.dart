@@ -77,18 +77,27 @@ class DummyData {
       'name': 'RD Sharma — Class 8',
       'chaptersCompleted': 12,
       'totalChapters': 12,
-    }
+    },
   ];
 
   static const List<Map<String, dynamic>> chapters = [
     {'id': 'c1', 'name': 'Rational Numbers', 'status': 'completed'},
-    {'id': 'c2', 'name': 'Linear Equations in One Variable', 'status': 'completed'},
+    {
+      'id': 'c2',
+      'name': 'Linear Equations in One Variable',
+      'status': 'completed',
+    },
     {'id': 'c3', 'name': 'Understanding Quadrilaterals', 'status': 'pending'},
     {'id': 'c4', 'name': 'Practical Geometry', 'status': 'pending'},
     {'id': 'c5', 'name': 'Data Handling', 'status': 'completed'},
     {'id': 'c6', 'name': 'Squares and Square Roots', 'status': 'completed'},
     {'id': 'c7', 'name': 'Cubes and Cube Roots', 'status': 'completed'},
-    {'id': 'c8', 'name': 'Comparing Quantities', 'status': 'uploading', 'progress': 0.8},
+    {
+      'id': 'c8',
+      'name': 'Comparing Quantities',
+      'status': 'uploading',
+      'progress': 0.8,
+    },
   ];
 
   static const List<Map<String, dynamic>> papers = [

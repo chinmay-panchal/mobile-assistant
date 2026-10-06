@@ -48,30 +48,36 @@ class _AuthPrimaryButtonState extends State<AuthPrimaryButton> {
           color: widget.isDestructive
               ? (_isEnabled ? AuthTheme.error : AuthTheme.inputBorder)
               : (widget.isSecondary
-                  ? AuthTheme.surfaceWhite
-                  : (_isEnabled ? null : AuthTheme.inputBorder)),
+                    ? AuthTheme.surfaceWhite
+                    : (_isEnabled ? null : AuthTheme.inputBorder)),
           border: widget.isSecondary
               ? Border.all(color: AuthTheme.inputBorder, width: 1.2)
               : null,
           boxShadow: _isEnabled && !widget.isSecondary
               ? (widget.isDestructive
-                  ? [
-                      BoxShadow(
-                        color: AuthTheme.error.withValues(alpha: 0.25),
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ]
-                  : AuthTheme.buttonShadow)
+                    ? [
+                        BoxShadow(
+                          color: AuthTheme.error.withValues(alpha: 0.25),
+                          offset: const Offset(0, 4),
+                          blurRadius: 10,
+                        ),
+                      ]
+                    : AuthTheme.buttonShadow)
               : null,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
-            onTapDown: _isEnabled ? (_) => setState(() => _isPressed = true) : null,
-            onTapUp: _isEnabled ? (_) => setState(() => _isPressed = false) : null,
-            onTapCancel: _isEnabled ? () => setState(() => _isPressed = false) : null,
+            onTapDown: _isEnabled
+                ? (_) => setState(() => _isPressed = true)
+                : null,
+            onTapUp: _isEnabled
+                ? (_) => setState(() => _isPressed = false)
+                : null,
+            onTapCancel: _isEnabled
+                ? () => setState(() => _isPressed = false)
+                : null,
             onTap: _isEnabled ? widget.onPressed : null,
             child: Center(
               child: AnimatedSwitcher(
@@ -84,7 +90,9 @@ class _AuthPrimaryButtonState extends State<AuthPrimaryButton> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2.4,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.isSecondary ? AuthTheme.primary : Colors.white,
+                            widget.isSecondary
+                                ? AuthTheme.primary
+                                : Colors.white,
                           ),
                         ),
                       )
@@ -106,13 +114,13 @@ class _AuthPrimaryButtonState extends State<AuthPrimaryButton> {
                                       color: Colors.white,
                                     )
                                   : (widget.isSecondary
-                                      ? const TextStyle(
-                                          fontFamily: AuthTheme.fontFamily,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color: AuthTheme.textPrimary,
-                                        )
-                                      : AuthTheme.buttonText),
+                                        ? const TextStyle(
+                                            fontFamily: AuthTheme.fontFamily,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: AuthTheme.textPrimary,
+                                          )
+                                        : AuthTheme.buttonText),
                             ),
                           ),
                           if (widget.icon != null) ...[

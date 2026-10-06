@@ -10,6 +10,7 @@ import 'package:papervisor/features/paper_creation/screens/paper_wizard_step_dif
 import 'package:papervisor/features/paper_creation/screens/paper_wizard_step_reference.dart';
 import 'package:papervisor/features/paper_creation/screens/paper_result_screen.dart';
 import 'package:papervisor/features/paper_creation/screens/saved_pdf_viewer_screen.dart';
+import 'package:papervisor/features/paper_creation/widgets/alternative_type_selector.dart';
 
 void main() {
   group('Paper Creation Wizard UI Redesign Tests', () {
@@ -39,7 +40,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Physics'), findsOneWidget);
+      expect(find.text('PHYSICS'), findsOneWidget);
       expect(find.text('Step 1 of 5'), findsOneWidget);
       expect(find.text('Select Chapters'), findsOneWidget);
       expect(find.text('Choose textbook chapters'), findsOneWidget);
@@ -319,7 +320,7 @@ void main() {
       );
 
       expect(find.text('Step 3 of 5'), findsOneWidget);
-      expect(find.text('Reference Paper'), findsOneWidget);
+      expect(find.text('Reference Paper (Optional)'), findsOneWidget);
       expect(find.text('Reference Library'), findsOneWidget);
       expect(find.text('Upload New PDF'), findsOneWidget);
       expect(find.text('Continue (Custom Mode)'), findsOneWidget);
@@ -339,6 +340,83 @@ void main() {
       expect(find.text('PDF Preview'), findsOneWidget);
       expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
     });
+
+    testWidgets('AlternativeTypeSelector renders toggle and when enabled shows 3 alternative option cards', (WidgetTester tester) async {
+      bool isEnabled = false;
+      int selectedType = 1;
+      List<String> selectedSections = ['Section A'];
+      Map<String, int> attemptCounts = {'Section A': 3};
+
+      const sections = [
+        FormatSectionSummary(
+          name: 'Section A',
+          typeName: 'Short Answer',
+          questionType: 'SHORT_ANSWER',
+          count: 5,
+          marksEach: 2,
+        ),
+        FormatSectionSummary(
+          name: 'Section B',
+          typeName: 'Long Answer',
+          questionType: 'LONG_ANSWER',
+          count: 3,
+          marksEach: 5,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return AlternativeTypeSelector(
+                  isEnabled: isEnabled,
+                  onToggleEnabled: (val) => setState(() => isEnabled = val),
+                  selectedType: selectedType,
+                  onTypeChanged: (t) => setState(() => selectedType = t),
+                  sections: sections,
+                  selectedSections: selectedSections,
+                  onSectionsChanged: (s) => setState(() => selectedSections = s),
+                  attemptCounts: attemptCounts,
+                  onAttemptCountsChanged: (c) => setState(() => attemptCounts = c),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Initially disabled
+      expect(find.text('Internal Choice / Alternatives'), findsOneWidget);
+      expect(find.text('SELECT PAPER ALTERNATIVE TEMPLATE'), findsNothing);
+
+      // Tap toggle to enable
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      // Now options should be visible
+      expect(find.text('SELECT PAPER ALTERNATIVE TEMPLATE'), findsOneWidget);
+      expect(find.text('Simple OR Template'), findsOneWidget);
+      expect(find.text('Attempt X of Y Template'), findsOneWidget);
+      expect(find.text('Either / Or Section Template'), findsOneWidget);
+      expect(find.text('SIMPLE OR CONFIGURATION'), findsOneWidget);
+
+      // Tap "Attempt X of Y Template" card
+      await tester.tap(find.text('Attempt X of Y Template'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ATTEMPT X OF Y CONFIGURATION'), findsOneWidget);
+      expect(find.text('How many questions should students attempt?'), findsOneWidget);
+      expect(find.textContaining('Attempt 5 of'), findsOneWidget);
+
+      // Tap "Either / Or Section Template" card
+      await tester.tap(find.text('Either / Or Section Template'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EITHER / OR SECTION CONFIGURATION'), findsOneWidget);
+      expect(find.text('Which whole section should have a full alternative counterpart?'), findsOneWidget);
+    });
   });
 }
+
 

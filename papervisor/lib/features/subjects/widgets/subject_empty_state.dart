@@ -8,10 +8,7 @@ import '../constants/subject_assets.dart';
 class SubjectEmptyState extends StatelessWidget {
   final VoidCallback onAddSubject;
 
-  const SubjectEmptyState({
-    super.key,
-    required this.onAddSubject,
-  });
+  const SubjectEmptyState({super.key, required this.onAddSubject});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +52,11 @@ class SubjectEmptyState extends StatelessWidget {
               child: AuthPrimaryButton(
                 text: 'Add Subject',
                 onPressed: onAddSubject,
-                icon: const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                icon: const Icon(
+                  Icons.add_rounded,
+                  size: 20,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],

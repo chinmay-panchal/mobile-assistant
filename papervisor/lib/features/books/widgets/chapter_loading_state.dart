@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Lightweight skeleton loading state for the chapters list.
 class ChapterLoadingState extends StatefulWidget {
@@ -20,9 +21,10 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.35, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.35,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -37,6 +39,10 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
       animation: _animation,
       builder: (context, child) {
         final opacity = _animation.value;
+        final shimmerColor = WorkspaceTheme.isDark
+            ? const Color(0xFF334155).withValues(alpha: opacity)
+            : const Color(0xFFE2E8F0).withValues(alpha: opacity);
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
@@ -46,9 +52,9 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
               Container(
                 height: 76,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: WorkspaceTheme.surfaceWhite,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: WorkspaceTheme.borderSubtle),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -57,7 +63,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                        color: shimmerColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -71,7 +77,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                             height: 14,
                             width: 140,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                              color: shimmerColor,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -80,7 +86,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                             height: 10,
                             width: 80,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                              color: shimmerColor,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -97,7 +103,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                 height: 12,
                 width: 90,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                  color: shimmerColor,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -109,9 +115,9 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                   margin: const EdgeInsets.only(bottom: 12),
                   height: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: WorkspaceTheme.surfaceWhite,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: WorkspaceTheme.borderSubtle),
                   ),
                   padding: const EdgeInsets.all(14),
                   child: Row(
@@ -120,7 +126,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                          color: shimmerColor,
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -134,7 +140,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                               height: 13,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                                color: shimmerColor,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -143,7 +149,7 @@ class _ChapterLoadingStateState extends State<ChapterLoadingState>
                               height: 10,
                               width: 100,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE2E8F0).withValues(alpha: opacity),
+                                color: shimmerColor,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),

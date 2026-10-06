@@ -5,10 +5,7 @@ import '../../auth/theme/auth_theme.dart';
 class AddChapterTile extends StatelessWidget {
   final VoidCallback onTap;
 
-  const AddChapterTile({
-    super.key,
-    required this.onTap,
-  });
+  const AddChapterTile({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +28,10 @@ class AddChapterTile extends StatelessWidget {
               dashGap: 4,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(
+                vertical: 24.0,
+                horizontal: 20.0,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

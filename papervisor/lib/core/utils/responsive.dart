@@ -41,7 +41,12 @@ class Responsive {
   }
 
   /// Calculates dynamic grid columns based on available width and target card min-width.
-  static int getGridCrossAxisCount(BuildContext context, {double targetItemWidth = 260.0, int minColumns = 1, int maxColumns = 4}) {
+  static int getGridCrossAxisCount(
+    BuildContext context, {
+    double targetItemWidth = 260.0,
+    int minColumns = 1,
+    int maxColumns = 4,
+  }) {
     final width = MediaQuery.sizeOf(context).width;
     final int count = (width / targetItemWidth).floor();
     return count.clamp(minColumns, maxColumns);
@@ -77,15 +82,11 @@ class ResponsiveContainer extends StatelessWidget {
       alignment: alignment,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: padding ?? defaultPadding,
-          child: child,
-        ),
+        child: Padding(padding: padding ?? defaultPadding, child: child),
       ),
     );
   }
 }
-
 
 /// Displays either a centered dialog (on web and wide screens) or a bottom sheet (on mobile).
 class AdaptiveModal {
@@ -107,13 +108,13 @@ class AdaptiveModal {
           final maxH = screenHeight * maxHeightRatio;
           return Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 24,
+            ),
             elevation: 0,
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: maxWidth,
-                maxHeight: maxH,
-              ),
+              constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxH),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: Material(
@@ -157,10 +158,7 @@ class ResponsiveModalWrapper extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: child,
-        ),
+        child: ClipRRect(borderRadius: BorderRadius.circular(24), child: child),
       ),
     );
   }

@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
+import '../../workspace/widgets/workspace_primary_button.dart';
 import '../../auth/theme/auth_theme.dart';
-import '../../auth/widgets/auth_primary_button.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import 'package:pdf/pdf.dart';
 import '../../../../core/utils/pdf_preview_helper.dart';
@@ -20,13 +23,19 @@ class PaperWizardStepReference extends StatefulWidget {
   final Map<String, dynamic> subject;
   final PaperWizardState state;
 
-  const PaperWizardStepReference({super.key, required this.subject, required this.state});
+  const PaperWizardStepReference({
+    super.key,
+    required this.subject,
+    required this.state,
+  });
 
   @override
-  State<PaperWizardStepReference> createState() => _PaperWizardStepReferenceState();
+  State<PaperWizardStepReference> createState() =>
+      _PaperWizardStepReferenceState();
 }
 
-class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> with SingleTickerProviderStateMixin {
+class _PaperWizardStepReferenceState extends State<PaperWizardStepReference>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ReferencePaperService _refService = ReferencePaperService();
   final PaperService _paperService = PaperService();
@@ -48,6 +57,17 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    final cachedRef = _refService.getCachedReferencePapersSync(
+      widget.subject['id'],
+    );
+    final cachedAi = _paperService.getCachedPapersSync(widget.subject['id']);
+    if (cachedRef != null || cachedAi != null) {
+      _refPapers = cachedRef ?? [];
+      _aiPapers = (cachedAi ?? [])
+          .where((p) => p['status'] != 'FAILED')
+          .toList();
+      _loadingPapers = false;
+    }
     _fetchPapers();
   }
 
@@ -61,21 +81,28 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
   }
 
   Future<void> _fetchPapers() async {
-    setState(() { _loadingPapers = true; });
+    if (_refPapers.isEmpty && _aiPapers.isEmpty) {
+      setState(() {
+        _loadingPapers = true;
+      });
+    }
     try {
       final results = await Future.wait([
         _refService.listReferencePapers(widget.subject['id']),
         _paperService.listPapersBySubject(widget.subject['id']),
       ]);
       if (mounted) {
-        setState(() { 
-          _refPapers = results[0]; 
+        setState(() {
+          _refPapers = results[0];
           _aiPapers = results[1].where((p) => p['status'] != 'FAILED').toList();
-          _loadingPapers = false; 
+          _loadingPapers = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() { _loadingPapers = false; });
+      if (mounted)
+        setState(() {
+          _loadingPapers = false;
+        });
     }
   }
 
@@ -104,7 +131,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
     final title = _titleCtrl.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title for the reference paper.')),
+        const SnackBar(
+          content: Text('Please enter a title for the reference paper.'),
+        ),
       );
       return;
     }
@@ -125,7 +154,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
         fileBytes: _pickedFileBytes,
         fileName: _pickedFileName,
         year: int.tryParse(_yearCtrl.text.trim()),
-        examType: _examTypeCtrl.text.trim().isEmpty ? null : _examTypeCtrl.text.trim(),
+        examType: _examTypeCtrl.text.trim().isEmpty
+            ? null
+            : _examTypeCtrl.text.trim(),
       );
 
       if (mounted) {
@@ -143,7 +174,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
         if (!mounted) return;
         _tabController.animateTo(0);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reference paper uploaded and selected!')),
+          const SnackBar(
+            content: Text('Reference paper uploaded and selected!'),
+          ),
         );
       }
     } catch (e) {
@@ -158,10 +191,11 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final hasSelectedRef = widget.state.referencePaperId != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: WorkspaceTheme.canvas,
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -170,68 +204,73 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
             child: Column(
               children: [
                 // Top Step Header (No back arrow)
-            WizardStepHeader(
-              subjectName: widget.subject['name'] ?? 'Subject',
-              currentStep: 3,
-              title: 'Reference Paper',
-              subtitle: 'Select an optional blueprint or skip for custom format',
-              onBack: () => Navigator.pop(context),
-            ),
+                WizardStepHeader(
+                  subjectName: widget.subject['name'] ?? 'Subject',
+                  currentStep: 3,
+                  title: 'Reference Paper (Optional)',
+                  subtitle:
+                      'Select an optional blueprint or skip for custom format',
+                  onBack: () => Navigator.pop(context),
+                ),
 
-            // Segmented Tab Bar
-            Container(
-              margin: const EdgeInsets.fromLTRB(20, 14, 20, 10),
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
+                // Segmented Tab Bar
+                Container(
+                  margin: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: WorkspaceTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: WorkspaceTheme.borderSubtle),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: WorkspaceTheme.surfaceWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: WorkspaceTheme.isDark ? 0.3 : 0.05,
+                          ),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
-                  ],
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: WorkspaceTheme.textPrimary,
+                    unselectedLabelColor: WorkspaceTheme.textSecondary,
+                    labelStyle: TextStyle(
+                      fontFamily: WorkspaceTheme.fontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    unselectedLabelStyle: TextStyle(
+                      fontFamily: WorkspaceTheme.fontFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    dividerColor: Colors.transparent,
+                    tabs: const [
+                      Tab(text: 'Reference Library'),
+                      Tab(text: 'Upload New PDF'),
+                    ],
+                  ),
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AuthTheme.primary,
-                unselectedLabelColor: AuthTheme.textSecondary,
-                labelStyle: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-                dividerColor: Colors.transparent,
-                tabs: const [
-                  Tab(text: 'Reference Library'),
-                  Tab(text: 'Upload New PDF'),
-                ],
-              ),
-            ),
 
-            // Tab Views
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Tab 1: Library
-                  _loadingPapers
-                      ? const Center(
-                          child: CircularProgressIndicator(color: AuthTheme.primary),
-                        )
-                      : (_refPapers.isEmpty && _aiPapers.isEmpty)
+                // Tab Views
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // Tab 1: Library
+                      _loadingPapers
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: AuthTheme.primary,
+                              ),
+                            )
+                          : (_refPapers.isEmpty && _aiPapers.isEmpty)
                           ? Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(24.0),
@@ -242,33 +281,33 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                                       width: 54,
                                       height: 54,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
+                                        color: WorkspaceTheme.surfaceMuted,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.description_outlined,
-                                        color: AuthTheme.textTertiary,
+                                        color: WorkspaceTheme.textTertiary,
                                         size: 26,
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    const Text(
+                                    Text(
                                       'No Reference Papers Yet',
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
-                                        color: AuthTheme.textPrimary,
+                                        color: WorkspaceTheme.textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    const Text(
+                                    Text(
                                       'Upload a previous exam paper or continue in custom format mode.',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 12,
-                                        color: AuthTheme.textSecondary,
+                                        color: WorkspaceTheme.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -281,232 +320,270 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (_refPapers.isNotEmpty) ...[
-                                    const Text(
+                                    Text(
                                       'PAST REFERENCE PAPERS',
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 1.1,
-                                        color: AuthTheme.textTertiary,
+                                        color: WorkspaceTheme.textTertiary,
                                       ),
                                     ),
                                     const SizedBox(height: 10),
-                                    ..._refPapers.map((p) => _buildPaperCard(p, isAi: false)),
+                                    ..._refPapers.map(
+                                      (p) => _buildPaperCard(p, isAi: false),
+                                    ),
                                   ],
 
                                   if (_aiPapers.isNotEmpty) ...[
                                     const SizedBox(height: 18),
-                                    const Text(
+                                    Text(
                                       'PREVIOUSLY GENERATED PAPERS',
                                       style: TextStyle(
-                                        fontFamily: AuthTheme.fontFamily,
+                                        fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 1.1,
-                                        color: AuthTheme.textTertiary,
+                                        color: WorkspaceTheme.textTertiary,
                                       ),
                                     ),
                                     const SizedBox(height: 10),
-                                    ..._aiPapers.map((p) => _buildPaperCard(p, isAi: true)),
+                                    ..._aiPapers.map(
+                                      (p) => _buildPaperCard(p, isAi: true),
+                                    ),
                                   ],
                                 ],
                               ),
                             ),
 
-                  // Tab 2: Upload PDF
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // PDF Drop / Pick Area
-                        InkWell(
-                          onTap: _uploading ? null : _pickFile,
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: _pickedFileName != null ? const Color(0xFFF0FDF4) : Colors.white,
+                      // Tab 2: Upload PDF
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // PDF Drop / Pick Area
+                            InkWell(
+                              onTap: _uploading ? null : _pickFile,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _pickedFileName != null ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
-                                width: 1.5,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: _pickedFileName != null
+                                      ? (WorkspaceTheme.isDark
+                                            ? const Color(
+                                                0xFF14532D,
+                                              ).withValues(alpha: 0.3)
+                                            : const Color(0xFFF0FDF4))
+                                      : WorkspaceTheme.surfaceWhite,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: _pickedFileName != null
+                                        ? const Color(0xFF86EFAC)
+                                        : WorkspaceTheme.borderSubtle,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: _pickedFileName != null
+                                            ? const Color(0xFFDCFCE7)
+                                            : (WorkspaceTheme.isDark
+                                                  ? const Color(0xFF1E293B)
+                                                  : const Color(0xFFEEF2FF)),
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Icon(
+                                        _pickedFileName != null
+                                            ? Icons.picture_as_pdf_rounded
+                                            : Icons.cloud_upload_outlined,
+                                        color: _pickedFileName != null
+                                            ? const Color(0xFF16A34A)
+                                            : WorkspaceTheme.accentCobalt,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _pickedFileName ??
+                                          'Tap to select reference PDF',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: _pickedFileName != null
+                                            ? const Color(0xFF16A34A)
+                                            : WorkspaceTheme.textPrimary,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _pickedFileName != null
+                                          ? 'File selected · Tap to replace'
+                                          : 'Supports standard PDF documents (max 50MB)',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 12,
+                                        color: WorkspaceTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: Column(
+
+                            const SizedBox(height: 20),
+
+                            // Form Inputs
+                            AuthTextField(
+                              label: 'Paper Title *',
+                              hintText: 'e.g. CBSE Class 10 Board Exam 2024',
+                              controller: _titleCtrl,
+                              prefixIcon: Icons.title_rounded,
+                            ),
+                            const SizedBox(height: 14),
+
+                            Row(
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: _pickedFileName != null
-                                        ? const Color(0xFFDCFCE7)
-                                        : const Color(0xFFEEF2FF),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Icon(
-                                    _pickedFileName != null
-                                        ? Icons.picture_as_pdf_rounded
-                                        : Icons.cloud_upload_outlined,
-                                    color: _pickedFileName != null
-                                        ? const Color(0xFF16A34A)
-                                        : AuthTheme.primary,
-                                    size: 24,
+                                Expanded(
+                                  flex: 2,
+                                  child: AuthTextField(
+                                    label: 'Year',
+                                    hintText: 'e.g. 2024',
+                                    controller: _yearCtrl,
+                                    prefixIcon: Icons.calendar_today_outlined,
+                                    keyboardType: TextInputType.number,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _pickedFileName ?? 'Tap to select reference PDF',
-                                  style: TextStyle(
-                                    fontFamily: AuthTheme.fontFamily,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: _pickedFileName != null
-                                        ? const Color(0xFF16A34A)
-                                        : AuthTheme.textPrimary,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _pickedFileName != null
-                                      ? 'File selected · Tap to replace'
-                                      : 'Supports standard PDF documents (max 50MB)',
-                                  style: const TextStyle(
-                                    fontFamily: AuthTheme.fontFamily,
-                                    fontSize: 12,
-                                    color: AuthTheme.textSecondary,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 3,
+                                  child: AuthTextField(
+                                    label: 'Exam Type',
+                                    hintText: 'e.g. Midterm / Annual',
+                                    controller: _examTypeCtrl,
+                                    prefixIcon: Icons.bookmark_border_rounded,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ),
 
-                        const SizedBox(height: 20),
+                            const SizedBox(height: 24),
 
-                        // Form Inputs
-                        AuthTextField(
-                          label: 'Paper Title *',
-                          hintText: 'e.g. CBSE Class 10 Board Exam 2024',
-                          controller: _titleCtrl,
-                          prefixIcon: Icons.title_rounded,
-                        ),
-                        const SizedBox(height: 14),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: AuthTextField(
-                                label: 'Year',
-                                hintText: 'e.g. 2024',
-                                controller: _yearCtrl,
-                                prefixIcon: Icons.calendar_today_outlined,
-                                keyboardType: TextInputType.number,
+                            // Upload Button
+                            WorkspacePrimaryButton(
+                              text: 'Upload & Select Paper',
+                              icon: const Icon(
+                                Icons.upload_file_rounded,
+                                color: Colors.white,
+                                size: 18,
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 3,
-                              child: AuthTextField(
-                                label: 'Exam Type',
-                                hintText: 'e.g. Midterm / Annual',
-                                controller: _examTypeCtrl,
-                                prefixIcon: Icons.bookmark_border_rounded,
-                              ),
+                              isLoading: _uploading,
+                              onPressed:
+                                  (_pickedFileName != null ||
+                                          _pickedFilePath != null) &&
+                                      !_uploading
+                                  ? _uploadPickedFile
+                                  : null,
                             ),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                        const SizedBox(height: 24),
-
-                        // Upload Button
-                        AuthPrimaryButton(
-                          text: 'Upload & Select Paper',
-                          icon: const Icon(Icons.upload_file_rounded, color: Colors.white, size: 18),
-                          isLoading: _uploading,
-                          onPressed: (_pickedFileName != null || _pickedFilePath != null) && !_uploading
-                              ? _uploadPickedFile
-                              : null,
+                // Bottom Action Bar
+                WizardBottomBar(
+                  text: hasSelectedRef ? 'Continue' : 'Continue (Custom Mode)',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaperWizardStepDifficulty(
+                          subject: widget.subject,
+                          state: widget.state,
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom Action Bar
-            WizardBottomBar(
-              text: hasSelectedRef ? 'Continue' : 'Continue (Custom Mode)',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PaperWizardStepDifficulty(
-                      subject: widget.subject,
-                      state: widget.state,
-                    ),
-                  ),
-                );
-              },
-              helperWidget: hasSelectedRef
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check_circle_rounded, color: AuthTheme.success, size: 18),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: Text(
-                              'Reference paper selected as exam blueprint',
-                              style: TextStyle(
-                                fontFamily: AuthTheme.fontFamily,
-                                color: Color(0xFF065F46),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
+                    );
+                  },
+                  helperWidget: hasSelectedRef
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
                           ),
-                          TextButton(
-                            onPressed: () => setState(() => widget.state.referencePaperId = null),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: const Text(
-                              'Clear',
-                              style: TextStyle(
-                                fontFamily: AuthTheme.fontFamily,
-                                color: AuthTheme.error,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
                           ),
-                        ],
-                      ),
-                    )
-                  : null,
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                color: AuthTheme.success,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Reference paper selected as exam blueprint',
+                                  style: TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    color: Color(0xFF065F46),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => setState(
+                                  () => widget.state.referencePaperId = null,
+                                ),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Clear',
+                                  style: TextStyle(
+                                    fontFamily: AuthTheme.fontFamily,
+                                    color: AuthTheme.error,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : null,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
-  Future<void> _previewPaper(Map<String, dynamic> paper, {bool isAi = false}) async {
+  Future<void> _previewPaper(
+    Map<String, dynamic> paper, {
+    bool isAi = false,
+  }) async {
     final title = (paper['title'] ?? 'Paper Preview').toString();
     final pdfUrl = (paper['pdf_url'] ?? paper['file_url'])?.toString();
 
@@ -537,7 +614,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       // If questions are missing from the list item, fetch full paper object
       if (fullPaper['questions'] == null && fullPaper['id'] != null) {
         try {
-          final fetched = await _paperService.getPaper(fullPaper['id'].toString());
+          final fetched = await _paperService.getPaper(
+            fullPaper['id'].toString(),
+          );
           fullPaper = fetched;
         } catch (_) {}
       }
@@ -554,10 +633,7 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => SavedPdfViewerScreen(
-            pdfBytes: bytes,
-            title: title,
-          ),
+          builder: (_) => SavedPdfViewerScreen(pdfBytes: bytes, title: title),
         ),
       );
     } catch (e) {
@@ -589,16 +665,18 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? AuthTheme.primary : const Color(0xFFE2E8F0),
+          color: isSelected
+              ? WorkspaceTheme.accentCobalt
+              : WorkspaceTheme.borderSubtle,
           width: isSelected ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? AuthTheme.primary.withValues(alpha: 0.08)
+                ? WorkspaceTheme.accentCobalt.withValues(alpha: 0.12)
                 : Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -627,15 +705,23 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: isAi ? const Color(0xFFF1F5F9) : const Color(0xFFFEE2E2),
+                    color: isAi
+                        ? const Color(0xFFF1F5F9)
+                        : const Color(0xFFFEE2E2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isAi ? const Color(0xFFE2E8F0) : const Color(0xFFFECACA),
+                      color: isAi
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFFFECACA),
                     ),
                   ),
                   child: Icon(
-                    isAi ? Icons.auto_awesome_rounded : Icons.picture_as_pdf_rounded,
-                    color: isAi ? AuthTheme.textPrimary : const Color(0xFFDC2626),
+                    isAi
+                        ? Icons.auto_awesome_rounded
+                        : Icons.picture_as_pdf_rounded,
+                    color: isAi
+                        ? AuthTheme.textPrimary
+                        : const Color(0xFFDC2626),
                     size: 20,
                   ),
                 ),
@@ -652,7 +738,9 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                           fontFamily: AuthTheme.fontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isSelected ? AuthTheme.primary : AuthTheme.textPrimary,
+                          color: isSelected
+                              ? WorkspaceTheme.accentCobalt
+                              : WorkspaceTheme.textPrimary,
                           letterSpacing: -0.2,
                         ),
                         maxLines: 2,
@@ -665,54 +753,66 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                         children: [
                           if (year != null) ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: WorkspaceTheme.surfaceMuted,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 '$year',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: AuthTheme.fontFamily,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: AuthTheme.textSecondary,
+                                  color: WorkspaceTheme.textSecondary,
                                 ),
                               ),
                             ),
                           ],
                           if (totalMarks != null) ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: WorkspaceTheme.surfaceMuted,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 '$totalMarks Marks',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: AuthTheme.fontFamily,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: AuthTheme.textSecondary,
+                                  color: WorkspaceTheme.textSecondary,
                                 ),
                               ),
                             ),
                           ],
-                          if (examType != null && examType.toString().isNotEmpty) ...[
+                          if (examType != null &&
+                              examType.toString().isNotEmpty) ...[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEEF2FF),
+                                color: WorkspaceTheme.isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFEEF2FF),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 examType.toString(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: AuthTheme.fontFamily,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: AuthTheme.primary,
+                                  color: WorkspaceTheme.accentCobalt,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -727,10 +827,10 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
 
                 // Preview Paper in-app (Available for ALL papers: PDF or JSON)
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.visibility_outlined,
                     size: 20,
-                    color: AuthTheme.textPrimary,
+                    color: WorkspaceTheme.textPrimary,
                   ),
                   tooltip: 'Preview Paper',
                   onPressed: () => _previewPaper(paper, isAi: isAi),
@@ -741,15 +841,23 @@ class _PaperWizardStepReferenceState extends State<PaperWizardStepReference> wit
                   width: 22,
                   height: 22,
                   decoration: BoxDecoration(
-                    color: isSelected ? AuthTheme.primary : Colors.transparent,
+                    color: isSelected
+                        ? WorkspaceTheme.accentCobalt
+                        : Colors.transparent,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? AuthTheme.primary : const Color(0xFFCBD5E1),
+                      color: isSelected
+                          ? WorkspaceTheme.accentCobalt
+                          : WorkspaceTheme.borderSubtle,
                       width: 1.5,
                     ),
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        )
                       : null,
                 ),
               ],

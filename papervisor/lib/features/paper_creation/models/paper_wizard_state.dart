@@ -22,12 +22,19 @@ class PaperWizardState {
   /// Academic level e.g. "Class 8", "Semester II"
   String className = '';
 
-  /// Exam duration in minutes e.g. 180 for 3 hours
-  int timeAllowedMinutes = 180;
+  /// Exam duration in minutes e.g. 90 minutes
+  int timeAllowedMinutes = 90;
 
   /// Numerical questions percentage settings
   bool enableNumericalPercentage = false;
   int numericalPercentage = 0;
+
+  /// Internal choice / Alternative settings
+  bool enableAlternatives = false;
+  int alternativeType =
+      1; // 1 = Simple OR, 2 = Attempt X of Y, 3 = Either/Or section
+  List<String> alternativeSectionNames = [];
+  Map<String, int> attemptQuestionCounts = {};
 
   /// Chapter weightage settings
   bool enableChapterWeightage = false;
@@ -64,7 +71,9 @@ class PaperWizardState {
       return;
     }
 
-    final otherIds = selectedChapterIds.where((id) => id != changedChapterId).toList();
+    final otherIds = selectedChapterIds
+        .where((id) => id != changedChapterId)
+        .toList();
     final int remaining = 100 - newWeight;
 
     // Sum of other chapters' current weightages
@@ -96,7 +105,8 @@ class PaperWizardState {
         });
 
       for (int i = 0; i < diff && i < sortedByFraction.length; i++) {
-        chapterWeightages[sortedByFraction[i]] = (chapterWeightages[sortedByFraction[i]] ?? 0) + 1;
+        chapterWeightages[sortedByFraction[i]] =
+            (chapterWeightages[sortedByFraction[i]] ?? 0) + 1;
       }
     } else {
       final int base = remaining ~/ otherIds.length;
@@ -111,4 +121,3 @@ class PaperWizardState {
 
   String get generationMode => isReferenceMode ? 'REFERENCE' : 'CUSTOM';
 }
-

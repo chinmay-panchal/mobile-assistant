@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../models/paper_wizard_state.dart';
 import '../widgets/paper_meta_dialog.dart';
@@ -16,10 +19,15 @@ export 'paper_wizard_step_format.dart';
 class PaperWizardStepDifficulty extends StatefulWidget {
   final Map<String, dynamic> subject;
   final PaperWizardState state;
-  const PaperWizardStepDifficulty({super.key, required this.subject, required this.state});
+  const PaperWizardStepDifficulty({
+    super.key,
+    required this.subject,
+    required this.state,
+  });
 
   @override
-  State<PaperWizardStepDifficulty> createState() => _PaperWizardStepDifficultyState();
+  State<PaperWizardStepDifficulty> createState() =>
+      _PaperWizardStepDifficultyState();
 }
 
 class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
@@ -39,7 +47,9 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
     _hardPercentage = widget.state.hardPercentage.toDouble();
 
     _easyController = TextEditingController(text: '${_easyPercentage.round()}');
-    _mediumController = TextEditingController(text: '${_mediumPercentage.round()}');
+    _mediumController = TextEditingController(
+      text: '${_mediumPercentage.round()}',
+    );
     _hardController = TextEditingController(text: '${_hardPercentage.round()}');
   }
 
@@ -56,8 +66,16 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
   int get _hardVal => int.tryParse(_hardController.text.trim()) ?? 0;
 
   int get _totalPercentage => _easyVal + _mediumVal + _hardVal;
-  bool get _isExceeds100 => _totalPercentage > 100 || _easyVal > 100 || _mediumVal > 100 || _hardVal > 100;
-  bool get _isExact100 => _totalPercentage == 100 && _easyVal <= 100 && _mediumVal <= 100 && _hardVal <= 100;
+  bool get _isExceeds100 =>
+      _totalPercentage > 100 ||
+      _easyVal > 100 ||
+      _mediumVal > 100 ||
+      _hardVal > 100;
+  bool get _isExact100 =>
+      _totalPercentage == 100 &&
+      _easyVal <= 100 &&
+      _mediumVal <= 100 &&
+      _hardVal <= 100;
   bool get _isValid =>
       _isExact100 &&
       _easyVal >= 0 &&
@@ -68,12 +86,14 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
       _hardController.text.trim().isNotEmpty;
 
   void _onDifficultySliderChanged(int changedIndex, double newVal) {
+    FocusScope.of(context).unfocus();
     newVal = newVal.clamp(0.0, 100.0);
     double easy = _easyPercentage.clamp(0.0, 100.0);
     double medium = _mediumPercentage.clamp(0.0, 100.0);
     double hard = _hardPercentage.clamp(0.0, 100.0);
 
-    if (changedIndex == 0) { // Easy changed
+    if (changedIndex == 0) {
+      // Easy changed
       easy = newVal;
       double remaining = 100.0 - easy;
       double sumOthers = medium + hard;
@@ -84,7 +104,8 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
         medium = remaining / 2.0;
         hard = remaining / 2.0;
       }
-    } else if (changedIndex == 1) { // Medium changed
+    } else if (changedIndex == 1) {
+      // Medium changed
       medium = newVal;
       double remaining = 100.0 - medium;
       double sumOthers = easy + hard;
@@ -95,7 +116,8 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
         easy = remaining / 2.0;
         hard = remaining / 2.0;
       }
-    } else if (changedIndex == 2) { // Hard changed
+    } else if (changedIndex == 2) {
+      // Hard changed
       hard = newVal;
       double remaining = 100.0 - hard;
       double sumOthers = easy + medium;
@@ -149,6 +171,7 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
   }
 
   void _applyPreset(double e, double m, double h) {
+    FocusScope.of(context).unfocus();
     setState(() {
       _easyPercentage = e;
       _mediumPercentage = m;
@@ -175,244 +198,295 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final isRef = widget.state.isReferenceMode;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 860),
-            child: Column(
-              children: [
-            // Top Step Header (No back arrow)
-            WizardStepHeader(
-              subjectName: widget.subject['name'] ?? 'Subject',
-              currentStep: 4,
-              title: 'Difficulty Level',
-              subtitle: 'This difficulty level is applied section-wise. For example, if you have Very Short and Short Answer sections only, then Easy, Medium, and Hard will be applied to both the sections.',
-              onBack: () => Navigator.pop(context),
-            ),
+      backgroundColor: WorkspaceTheme.canvas,
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 860),
+              child: Column(
+                children: [
+                  // Top Step Header (No back arrow on mobile)
+                  WizardStepHeader(
+                    subjectName: widget.subject['name'] ?? 'Subject',
+                    currentStep: 4,
+                    title: 'Difficulty Level',
+                    subtitle:
+                        'This difficulty level is applied section-wise. For example, if you have Very Short and Short Answer sections only, then Easy, Medium, and Hard will be applied to both the sections.',
+                    onBack: () => Navigator.pop(context),
+                  ),
 
-            // Sliders & Presets Area
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Difficulty Card
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.025),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
+                  // Sliders & Presets Area
+                  Expanded(
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildDifficultySliderRow(
-                            title: 'Easy',
-                            controller: _easyController,
-                            percentage: _easyPercentage,
-                            color: const Color(0xFF059669),
-                            bgColor: const Color(0xFFECFDF5),
-                            borderColor: const Color(0xFFA7F3D0),
-                            onSliderChanged: (v) => _onDifficultySliderChanged(0, v),
-                            onTextChanged: (v) => _onTextFieldChanged(0, v),
-                          ),
-                          const SizedBox(height: 18),
-                          _buildDifficultySliderRow(
-                            title: 'Medium',
-                            controller: _mediumController,
-                            percentage: _mediumPercentage,
-                            color: const Color(0xFFD97706),
-                            bgColor: const Color(0xFFFFFBEB),
-                            borderColor: const Color(0xFFFDE68A),
-                            onSliderChanged: (v) => _onDifficultySliderChanged(1, v),
-                            onTextChanged: (v) => _onTextFieldChanged(1, v),
-                          ),
-                          const SizedBox(height: 18),
-                          _buildDifficultySliderRow(
-                            title: 'Hard',
-                            controller: _hardController,
-                            percentage: _hardPercentage,
-                            color: const Color(0xFFE11D48),
-                            bgColor: const Color(0xFFFFF1F2),
-                            borderColor: const Color(0xFFFECDD3),
-                            onSliderChanged: (v) => _onDifficultySliderChanged(2, v),
-                            onTextChanged: (v) => _onTextFieldChanged(2, v),
-                          ),
-                          const SizedBox(height: 18),
-                          const Divider(color: Color(0xFFF1F5F9), height: 1),
-                          const SizedBox(height: 14),
-                          _buildTotalIndicator(),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Quick Presets
-                    const Text(
-                      'PRESETS',
-                      style: TextStyle(
-                        fontFamily: AuthTheme.fontFamily,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
-                        color: AuthTheme.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        _buildPresetButton(
-                          label: 'Beginner',
-                          breakdown: '50/30/20',
-                          isSelected: _easyVal == 50 && _mediumVal == 30 && _hardVal == 20,
-                          onTap: () => _applyPreset(50, 30, 20),
-                        ),
-                        const SizedBox(width: 10),
-                        _buildPresetButton(
-                          label: 'Balanced',
-                          breakdown: '25/50/25',
-                          isSelected: _easyVal == 25 && _mediumVal == 50 && _hardVal == 25,
-                          onTap: () => _applyPreset(25, 50, 25),
-                        ),
-                        const SizedBox(width: 10),
-                        _buildPresetButton(
-                          label: 'Challenging',
-                          breakdown: '15/35/50',
-                          isSelected: _easyVal == 15 && _mediumVal == 35 && _hardVal == 50,
-                          onTap: () => _applyPreset(15, 35, 50),
-                        ),
-                      ],
-                    ),
-
-                    if (isRef) ...[
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.auto_awesome_rounded, color: Color(0xFF2563EB), size: 18),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Reference blueprint active: Section layout and question counts will match the chosen reference paper.',
-                                style: TextStyle(
-                                  fontFamily: AuthTheme.fontFamily,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF1E40AF),
-                                  height: 1.4,
+                          // Difficulty Card
+                          Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: WorkspaceTheme.surfaceWhite,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: WorkspaceTheme.borderSubtle,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.025),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDifficultySliderRow(
+                                  title: 'Easy',
+                                  controller: _easyController,
+                                  percentage: _easyPercentage,
+                                  color: const Color(0xFF059669),
+                                  bgColor: const Color(0xFFECFDF5),
+                                  borderColor: const Color(0xFFA7F3D0),
+                                  onSliderChanged: (v) =>
+                                      _onDifficultySliderChanged(0, v),
+                                  onTextChanged: (v) =>
+                                      _onTextFieldChanged(0, v),
+                                ),
+                                const SizedBox(height: 18),
+                                _buildDifficultySliderRow(
+                                  title: 'Medium',
+                                  controller: _mediumController,
+                                  percentage: _mediumPercentage,
+                                  color: const Color(0xFFD97706),
+                                  bgColor: const Color(0xFFFFFBEB),
+                                  borderColor: const Color(0xFFFDE68A),
+                                  onSliderChanged: (v) =>
+                                      _onDifficultySliderChanged(1, v),
+                                  onTextChanged: (v) =>
+                                      _onTextFieldChanged(1, v),
+                                ),
+                                const SizedBox(height: 18),
+                                _buildDifficultySliderRow(
+                                  title: 'Hard',
+                                  controller: _hardController,
+                                  percentage: _hardPercentage,
+                                  color: const Color(0xFFE11D48),
+                                  bgColor: const Color(0xFFFFF1F2),
+                                  borderColor: const Color(0xFFFECDD3),
+                                  onSliderChanged: (v) =>
+                                      _onDifficultySliderChanged(2, v),
+                                  onTextChanged: (v) =>
+                                      _onTextFieldChanged(2, v),
+                                ),
+                                const SizedBox(height: 18),
+                                Divider(
+                                  color: WorkspaceTheme.borderSubtle,
+                                  height: 1,
+                                ),
+                                const SizedBox(height: 14),
+                                _buildTotalIndicator(),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Quick Presets
+                          Text(
+                            'PRESETS',
+                            style: TextStyle(
+                              fontFamily: AuthTheme.fontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                              color: WorkspaceTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              _buildPresetButton(
+                                label: 'Beginner',
+                                breakdown: '50/30/20',
+                                isSelected:
+                                    _easyVal == 50 &&
+                                    _mediumVal == 30 &&
+                                    _hardVal == 20,
+                                onTap: () => _applyPreset(50, 30, 20),
+                              ),
+                              const SizedBox(width: 10),
+                              _buildPresetButton(
+                                label: 'Balanced',
+                                breakdown: '25/50/25',
+                                isSelected:
+                                    _easyVal == 25 &&
+                                    _mediumVal == 50 &&
+                                    _hardVal == 25,
+                                onTap: () => _applyPreset(25, 50, 25),
+                              ),
+                              const SizedBox(width: 10),
+                              _buildPresetButton(
+                                label: 'Challenging',
+                                breakdown: '15/35/50',
+                                isSelected:
+                                    _easyVal == 15 &&
+                                    _mediumVal == 35 &&
+                                    _hardVal == 50,
+                                onTap: () => _applyPreset(15, 35, 50),
+                              ),
+                            ],
+                          ),
+
+                          if (isRef) ...[
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: WorkspaceTheme.isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: WorkspaceTheme.isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFBFDBFE),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.auto_awesome_rounded,
+                                    color: Color(0xFF2563EB),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Reference blueprint active: Section layout and question counts will match the chosen reference paper.',
+                                      style: TextStyle(
+                                        fontFamily: AuthTheme.fontFamily,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: WorkspaceTheme.isDark
+                                            ? const Color(0xFF93C5FD)
+                                            : const Color(0xFF1E40AF),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom Action Bar
-            WizardBottomBar(
-              text: isRef ? 'Generate Paper' : 'Continue',
-              icon: isRef ? Icons.auto_awesome_rounded : Icons.arrow_forward_rounded,
-              helperWidget: !_isValid
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1F2),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFFECDD3)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline_rounded, color: AuthTheme.error, size: 16),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              _isExceeds100
-                                  ? 'Difficulty percentages exceed 100% (Total: $_totalPercentage%)'
-                                  : 'Total difficulty must equal 100% (currently $_totalPercentage%)',
-                              style: const TextStyle(
-                                fontFamily: AuthTheme.fontFamily,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AuthTheme.error,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
                         ],
                       ),
-                    )
-                  : null,
-              onPressed: _isValid
-                  ? () {
-                      _saveDifficultyState();
-                      if (isRef) {
-                        PaperMetaDialog.show(
-                          context: context,
-                          initialMinutes: widget.state.timeAllowedMinutes,
-                          initialClass: widget.state.className,
-                          onGenerate: (title, className, minutes) {
-                            widget.state.className = className;
-                            widget.state.timeAllowedMinutes = minutes;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => GeneratingLoaderScreen(
-                                  subject: widget.subject,
-                                  state: widget.state,
-                                  title: title,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PaperWizardStepFormat(
-                              subject: widget.subject,
-                              state: widget.state,
+                    ),
+                  ),
+
+                  // Bottom Action Bar
+                  WizardBottomBar(
+                    text: isRef ? 'Generate Paper' : 'Continue',
+                    icon: isRef
+                        ? Icons.auto_awesome_rounded
+                        : Icons.arrow_forward_rounded,
+                    helperWidget: !_isValid
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                          ),
-                        );
-                      }
-                    }
-                  : null,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF1F2),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFFECDD3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: AuthTheme.error,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    _isExceeds100
+                                        ? 'Difficulty percentages exceed 100% (Total: $_totalPercentage%)'
+                                        : 'Total difficulty must equal 100% (currently $_totalPercentage%)',
+                                    style: const TextStyle(
+                                      fontFamily: AuthTheme.fontFamily,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AuthTheme.error,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : null,
+                    onPressed: _isValid
+                        ? () {
+                            _saveDifficultyState();
+                            if (isRef) {
+                              PaperMetaDialog.show(
+                                context: context,
+                                initialMinutes: widget.state.timeAllowedMinutes,
+                                initialClass: widget.state.className,
+                                onGenerate: (title, className, minutes) {
+                                  widget.state.className = className;
+                                  widget.state.timeAllowedMinutes = minutes;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => GeneratingLoaderScreen(
+                                        subject: widget.subject,
+                                        state: widget.state,
+                                        title: title,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PaperWizardStepFormat(
+                                    subject: widget.subject,
+                                    state: widget.state,
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        : null,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   Widget _buildTotalIndicator() {
     final isExact100 = _isValid;
@@ -493,11 +567,11 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: AuthTheme.fontFamily,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AuthTheme.textPrimary,
+                color: WorkspaceTheme.textPrimary,
               ),
             ),
             Container(
@@ -521,6 +595,9 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
                     child: TextField(
                       controller: controller,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                      onEditingComplete: () => FocusScope.of(context).unfocus(),
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(3),
@@ -558,7 +635,7 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: color,
-            inactiveTrackColor: const Color(0xFFF1F5F9),
+            inactiveTrackColor: WorkspaceTheme.surfaceMuted,
             thumbColor: color,
             overlayColor: color.withValues(alpha: 0.15),
             trackHeight: 6,
@@ -590,15 +667,19 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? AuthTheme.primary : Colors.white,
+              color: isSelected
+                  ? WorkspaceTheme.primaryDark
+                  : WorkspaceTheme.surfaceWhite,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? AuthTheme.primary : const Color(0xFFE2E8F0),
+                color: isSelected
+                    ? WorkspaceTheme.primaryDark
+                    : WorkspaceTheme.borderSubtle,
               ),
               boxShadow: [
                 BoxShadow(
                   color: isSelected
-                      ? AuthTheme.primary.withValues(alpha: 0.2)
+                      ? WorkspaceTheme.primaryDark.withValues(alpha: 0.2)
                       : Colors.black.withValues(alpha: 0.02),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
@@ -613,7 +694,9 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : AuthTheme.textPrimary,
+                    color: isSelected
+                        ? Colors.white
+                        : WorkspaceTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -625,7 +708,7 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
                     fontWeight: FontWeight.w500,
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.8)
-                        : AuthTheme.textSecondary,
+                        : WorkspaceTheme.textSecondary,
                   ),
                 ),
               ],
@@ -636,4 +719,3 @@ class _PaperWizardStepDifficultyState extends State<PaperWizardStepDifficulty> {
     );
   }
 }
-

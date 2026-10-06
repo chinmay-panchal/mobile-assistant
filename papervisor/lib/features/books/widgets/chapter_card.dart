@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../../auth/theme/auth_theme.dart';
 
 /// Polished card presenting a chapter with number badge, title, page range,
@@ -19,27 +22,33 @@ class ChapterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final rawChapterNum = chapter['chapter_number'];
     final chapterNum = rawChapterNum != null ? rawChapterNum.toString() : '?';
     final formattedNum = chapterNum.length == 1 ? '0$chapterNum' : chapterNum;
 
-    final chapterTitle = (chapter['name'] ?? chapter['title'] ?? 'Untitled Chapter').toString();
+    final chapterTitle =
+        (chapter['name'] ?? chapter['title'] ?? 'Untitled Chapter').toString();
     final startPage = chapter['start_page'];
     final endPage = chapter['end_page'];
     final hasPageRange = startPage != null && endPage != null;
-    final pageRangeText = hasPageRange ? 'Pages $startPage–$endPage' : 'Chapter $chapterNum';
+    final pageRangeText = hasPageRange
+        ? 'Pages $startPage–$endPage'
+        : 'Chapter $chapterNum';
 
     final hasPdf = chapter['file_url'] != null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: WorkspaceTheme.borderSubtle),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
+            color: Colors.black.withValues(
+              alpha: WorkspaceTheme.isDark ? 0.3 : 0.025,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -56,15 +65,21 @@ class ChapterCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF151F32)
+                      : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                  border: Border.all(
+                    color: WorkspaceTheme.isDark
+                        ? const Color(0xFF1E40AF)
+                        : const Color(0xFFBAE6FD),
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   formattedNum,
                   style: const TextStyle(
-                    fontFamily: AuthTheme.fontFamily,
+                    fontFamily: WorkspaceTheme.fontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0284C7),
@@ -81,11 +96,11 @@ class ChapterCard extends StatelessWidget {
                   children: [
                     Text(
                       chapterTitle,
-                      style: const TextStyle(
-                        fontFamily: AuthTheme.fontFamily,
+                      style: TextStyle(
+                        fontFamily: WorkspaceTheme.fontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                         letterSpacing: -0.2,
                       ),
                       maxLines: 2,
@@ -94,29 +109,34 @@ class ChapterCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.auto_stories_outlined,
                           size: 13,
-                          color: AuthTheme.textTertiary,
+                          color: WorkspaceTheme.textTertiary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           pageRangeText,
-                          style: const TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
+                          style: TextStyle(
+                            fontFamily: WorkspaceTheme.fontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AuthTheme.textSecondary,
+                            color: WorkspaceTheme.textSecondary,
                           ),
                         ),
                         if (hasPdf) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFECFDF5),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFA7F3D0)),
+                              border: Border.all(
+                                color: const Color(0xFFA7F3D0),
+                              ),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -154,7 +174,10 @@ class ChapterCard extends StatelessWidget {
                     onTap: onPreviewPdf,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
@@ -188,18 +211,18 @@ class ChapterCard extends StatelessWidget {
 
               // Contextual Three-dot Menu
               PopupMenuButton<String>(
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert_rounded,
-                  color: AuthTheme.textTertiary,
+                  color: WorkspaceTheme.textTertiary,
                   size: 20,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  side: BorderSide(color: WorkspaceTheme.borderSubtle),
                 ),
                 elevation: 4,
                 surfaceTintColor: Colors.transparent,
-                color: Colors.white,
+                color: WorkspaceTheme.surfaceWhite,
                 onSelected: (val) {
                   if (val == 'edit') {
                     onEdit();
@@ -208,7 +231,7 @@ class ChapterCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     height: 40,
                     child: Row(
@@ -216,39 +239,39 @@ class ChapterCard extends StatelessWidget {
                         Icon(
                           Icons.edit_outlined,
                           size: 17,
-                          color: AuthTheme.textPrimary,
+                          color: WorkspaceTheme.textPrimary,
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Text(
                           'Edit Chapter',
                           style: TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
+                            fontFamily: WorkspaceTheme.fontFamily,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AuthTheme.textPrimary,
+                            color: WorkspaceTheme.textPrimary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     height: 40,
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.delete_outline_rounded,
                           size: 17,
-                          color: AuthTheme.error,
+                          color: WorkspaceTheme.error,
                         ),
-                        SizedBox(width: 10),
-                        Text(
+                        const SizedBox(width: 10),
+                        const Text(
                           'Delete Chapter',
                           style: TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
+                            fontFamily: WorkspaceTheme.fontFamily,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AuthTheme.error,
+                            color: WorkspaceTheme.error,
                           ),
                         ),
                       ],

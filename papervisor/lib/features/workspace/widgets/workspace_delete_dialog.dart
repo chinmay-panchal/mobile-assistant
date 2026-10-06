@@ -47,7 +47,9 @@ class _WorkspaceDeleteDialogState extends State<WorkspaceDeleteDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             backgroundColor: WorkspaceTheme.error,
             content: Text(
               e.toString().replaceAll('Exception: ', ''),
@@ -87,7 +89,7 @@ class _WorkspaceDeleteDialogState extends State<WorkspaceDeleteDialog> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Delete Workspace?',
                 style: TextStyle(
                   fontFamily: WorkspaceTheme.fontFamily,
@@ -101,7 +103,7 @@ class _WorkspaceDeleteDialogState extends State<WorkspaceDeleteDialog> {
               const SizedBox(height: 8),
               Text(
                 'Are you sure you want to delete "${widget.workspaceName}"? All subjects and exam papers inside will be permanently removed.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: WorkspaceTheme.fontFamily,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w400,
@@ -118,7 +120,9 @@ class _WorkspaceDeleteDialogState extends State<WorkspaceDeleteDialog> {
                       text: 'Cancel',
                       isSecondary: true,
                       height: 44,
-                      onPressed: _isDeleting ? null : () => Navigator.pop(context),
+                      onPressed: _isDeleting
+                          ? null
+                          : () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 12),

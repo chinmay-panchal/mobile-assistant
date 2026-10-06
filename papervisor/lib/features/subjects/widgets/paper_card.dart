@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Tactile card representing an AI-generated exam paper or reference paper.
 class PaperCard extends StatelessWidget {
@@ -16,29 +18,41 @@ class PaperCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final isAi = paper['is_ai'] == true;
-    final title = (paper['title'] ?? (isAi ? 'Generated Paper' : 'Reference Paper')).toString();
+    final title =
+        (paper['title'] ?? (isAi ? 'Generated Paper' : 'Reference Paper'))
+            .toString();
     final marks = paper['total_marks'] as int? ?? 0;
 
-    final Color accentColor = isAi ? AuthTheme.accentSky : AuthTheme.accentCobalt;
-    final Color iconBg = const Color(0xFFEFF6FF);
-    final IconData icon = isAi ? Icons.auto_awesome_rounded : Icons.description_rounded;
+    final Color accentColor = isAi
+        ? WorkspaceTheme.accentSky
+        : WorkspaceTheme.accentCobalt;
+    final Color iconBg = WorkspaceTheme.isDark
+        ? const Color(0xFF151F32)
+        : const Color(0xFFEFF6FF);
+    final IconData icon = isAi
+        ? Icons.auto_awesome_rounded
+        : Icons.description_rounded;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AuthTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-        border: Border.all(color: AuthTheme.inputBorder, width: 1.2),
-        boxShadow: AuthTheme.cardShadow,
+        color: WorkspaceTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+        border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
+        boxShadow: WorkspaceTheme.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+          borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               children: [
                 // Soft Pastel Document Icon Container
@@ -48,13 +62,13 @@ class PaperCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: iconBg,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                    border: Border.all(
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF1E40AF)
+                          : const Color(0xFFBAE6FD),
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    color: accentColor,
-                    size: 22,
-                  ),
+                  child: Icon(icon, color: accentColor, size: 22),
                 ),
 
                 const SizedBox(width: 14),
@@ -66,11 +80,11 @@ class PaperCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontFamily: AuthTheme.fontFamily,
+                        style: TextStyle(
+                          fontFamily: WorkspaceTheme.fontFamily,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AuthTheme.textPrimary,
+                          color: WorkspaceTheme.textPrimary,
                           letterSpacing: -0.2,
                         ),
                         maxLines: 2,
@@ -84,7 +98,10 @@ class PaperCard extends StatelessWidget {
                         children: [
                           // Type Badge (AI or Reference)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: iconBg,
                               borderRadius: BorderRadius.circular(8),
@@ -93,13 +110,17 @@ class PaperCard extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (isAi) ...[
-                                  Icon(Icons.auto_awesome, size: 10, color: accentColor),
+                                  Icon(
+                                    Icons.auto_awesome,
+                                    size: 10,
+                                    color: accentColor,
+                                  ),
                                   const SizedBox(width: 3),
                                 ],
                                 Text(
                                   isAi ? 'AI Paper' : 'Reference',
                                   style: TextStyle(
-                                    fontFamily: AuthTheme.fontFamily,
+                                    fontFamily: WorkspaceTheme.fontFamily,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: accentColor,
@@ -111,18 +132,21 @@ class PaperCard extends StatelessWidget {
 
                           if (isAi && marks > 0)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: WorkspaceTheme.surfaceMuted,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 '$marks Marks',
-                                style: const TextStyle(
-                                  fontFamily: AuthTheme.fontFamily,
+                                style: TextStyle(
+                                  fontFamily: WorkspaceTheme.fontFamily,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: AuthTheme.textSecondary,
+                                  color: WorkspaceTheme.textSecondary,
                                 ),
                               ),
                             ),
@@ -138,7 +162,7 @@ class PaperCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(
                     Icons.delete_outline_rounded,
-                    color: AuthTheme.error,
+                    color: WorkspaceTheme.error,
                     size: 20,
                   ),
                   padding: const EdgeInsets.all(4),
@@ -150,7 +174,7 @@ class PaperCard extends StatelessWidget {
                 const SizedBox(width: 2),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: AuthTheme.textTertiary,
+                  color: WorkspaceTheme.textTertiary,
                   size: 20,
                 ),
               ],

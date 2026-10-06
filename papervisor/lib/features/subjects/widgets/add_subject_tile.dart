@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Distinct outlined tile in the Subject grid for triggering the Add Subject action.
 class AddSubjectTile extends StatelessWidget {
   final VoidCallback onTap;
 
-  const AddSubjectTile({
-    super.key,
-    required this.onTap,
-  });
+  const AddSubjectTile({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -16,22 +13,25 @@ class AddSubjectTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+            color: WorkspaceTheme.surfaceMuted,
+            borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
           ),
           child: CustomPaint(
             painter: _DashedBorderPainter(
-              borderRadius: AuthTheme.radiusCard,
-              color: AuthTheme.inputBorder,
+              borderRadius: WorkspaceTheme.radiusCard,
+              color: WorkspaceTheme.borderSubtle,
               strokeWidth: 1.5,
               dashLength: 6,
               dashGap: 4,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -40,12 +40,20 @@ class AddSubjectTile extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFEFF6FF),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                      border: Border.all(
+                        color: WorkspaceTheme.isDark
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFFBAE6FD),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0284C7).withValues(alpha: 0.08),
+                          color: const Color(0xFF0284C7).withValues(
+                            alpha: WorkspaceTheme.isDark ? 0.2 : 0.08,
+                          ),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -53,7 +61,7 @@ class AddSubjectTile extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.add_rounded,
-                      color: Color(0xFF0284C7),
+                      color: Color(0xFF38BDF8),
                       size: 22,
                     ),
                   ),
@@ -61,13 +69,13 @@ class AddSubjectTile extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // Action Title
-                  const Text(
+                  Text(
                     'Add Subject',
                     style: TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
+                      fontFamily: WorkspaceTheme.fontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: AuthTheme.textPrimary,
+                      color: WorkspaceTheme.textPrimary,
                       letterSpacing: -0.2,
                     ),
                     textAlign: TextAlign.center,
@@ -76,13 +84,13 @@ class AddSubjectTile extends StatelessWidget {
                   const SizedBox(height: 4),
 
                   // Supporting Text
-                  const Text(
+                  Text(
                     'Create a new subject',
                     style: TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
+                      fontFamily: WorkspaceTheme.fontFamily,
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      color: AuthTheme.textSecondary,
+                      color: WorkspaceTheme.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,

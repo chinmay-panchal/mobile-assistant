@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../constants/workspace_theme.dart';
 
-/// Clean skeleton placeholder cards shown during workspace data fetching.
+/// Clean skeleton placeholder grid matching the exact layout of the real
+/// workspace/subject grid (same crossAxisCount logic, mainAxisExtent=168,
+/// spacing=16) shown during data fetching.
 class WorkspaceLoadingState extends StatefulWidget {
   const WorkspaceLoadingState({super.key});
 
@@ -35,16 +37,25 @@ class _WorkspaceLoadingStateState extends State<WorkspaceLoadingState>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final int crossAxisCount = width < 640 ? 1 : (width < 960 ? 2 : 3);
+
     return AnimatedBuilder(
       animation: _pulseAnim,
       builder: (context, _) {
         return Opacity(
           opacity: _pulseAnim.value,
-          child: ListView.builder(
-            itemCount: 4,
+          child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             padding: EdgeInsets.zero,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              mainAxisExtent: 168,
+            ),
+            itemCount: crossAxisCount * 2, // 2 rows of ghost cards
             itemBuilder: (context, index) => _buildSkeletonCard(),
           ),
         );
@@ -54,58 +65,65 @@ class _WorkspaceLoadingStateState extends State<WorkspaceLoadingState>
 
   Widget _buildSkeletonCard() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       decoration: BoxDecoration(
         color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
         border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
         boxShadow: WorkspaceTheme.cardShadow,
       ),
-      child: Row(
+      padding: const EdgeInsets.all(14.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: WorkspaceTheme.surfaceMuted,
-              borderRadius: BorderRadius.circular(WorkspaceTheme.radiusElement),
-            ),
+          // Top Row: icon badge + menu dot placeholder
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: WorkspaceTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: WorkspaceTheme.surfaceSubtle,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 150,
-                  height: 15,
-                  decoration: BoxDecoration(
-                    color: WorkspaceTheme.surfaceMuted,
-                    borderRadius: BorderRadius.circular(4),
+
+          // Bottom: name + book count placeholders
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: WorkspaceTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 72,
+                height: 11,
+                decoration: BoxDecoration(
+                  color: WorkspaceTheme.surfaceSubtle,
+                  borderRadius: BorderRadius.circular(
+                    WorkspaceTheme.radiusPill,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 76,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: WorkspaceTheme.surfaceSubtle,
-                    borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
-                    border: Border.all(color: WorkspaceTheme.borderSubtle),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: WorkspaceTheme.surfaceSubtle,
-              shape: BoxShape.circle,
-              border: Border.all(color: WorkspaceTheme.borderSubtle),
-            ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/responsive.dart';
-import '../../auth/theme/auth_theme.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Contextual workspace header displaying the workspace name, subject count badge,
 /// back navigation button, and clean section title/subtitle.
@@ -19,6 +21,7 @@ class SubjectHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final showWebBack = kIsWeb && !Responsive.isMobile(context);
 
     return Column(
@@ -40,14 +43,14 @@ class SubjectHeader extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: WorkspaceTheme.surfaceMuted,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: WorkspaceTheme.borderSubtle),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_rounded,
                         size: 18,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                       ),
                     ),
                   ),
@@ -61,14 +64,20 @@ class SubjectHeader extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: WorkspaceTheme.isDark
+                    ? const Color(0xFF151F32)
+                    : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFBAE6FD)),
+                border: Border.all(
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF1E40AF)
+                      : const Color(0xFFBAE6FD),
+                ),
               ),
               child: const Icon(
                 Icons.folder_rounded,
                 size: 18,
-                color: Color(0xFF0284C7),
+                color: Color(0xFF38BDF8),
               ),
             ),
 
@@ -82,11 +91,11 @@ class SubjectHeader extends StatelessWidget {
                 children: [
                   Text(
                     workspaceName.toUpperCase(),
-                    style: const TextStyle(
-                      fontFamily: AuthTheme.fontFamily,
+                    style: TextStyle(
+                      fontFamily: WorkspaceTheme.fontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AuthTheme.textPrimary,
+                      color: WorkspaceTheme.textPrimary,
                       letterSpacing: -0.2,
                     ),
                     maxLines: 1,
@@ -96,19 +105,32 @@ class SubjectHeader extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
-                          border: Border.all(color: const Color(0xFFBAE6FD)),
+                          color: WorkspaceTheme.isDark
+                              ? const Color(0xFF151F32)
+                              : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(
+                            WorkspaceTheme.radiusPill,
+                          ),
+                          border: Border.all(
+                            color: WorkspaceTheme.isDark
+                                ? const Color(0xFF1E40AF)
+                                : const Color(0xFFBAE6FD),
+                          ),
                         ),
                         child: Text(
                           '$subjectCount ${subjectCount == 1 ? "Subject" : "Subjects"}',
-                          style: const TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
+                          style: TextStyle(
+                            fontFamily: WorkspaceTheme.fontFamily,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF0284C7),
+                            color: WorkspaceTheme.isDark
+                                ? const Color(0xFF38BDF8)
+                                : const Color(0xFF0284C7),
                           ),
                         ),
                       ),
@@ -123,24 +145,24 @@ class SubjectHeader extends StatelessWidget {
         const SizedBox(height: 20),
 
         // Section Title & Subtitle
-        const Text(
+        Text(
           'Your Subjects',
           style: TextStyle(
-            fontFamily: AuthTheme.fontFamily,
+            fontFamily: WorkspaceTheme.fontFamily,
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            color: AuthTheme.textPrimary,
+            color: WorkspaceTheme.textPrimary,
             letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'Organize your subjects and study material in one place.',
           style: TextStyle(
-            fontFamily: AuthTheme.fontFamily,
+            fontFamily: WorkspaceTheme.fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w400,
-            color: AuthTheme.textSecondary,
+            color: WorkspaceTheme.textSecondary,
             height: 1.35,
           ),
         ),

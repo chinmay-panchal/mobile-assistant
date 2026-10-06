@@ -28,11 +28,13 @@ class DocumentService {
     }
 
     if (fileBytes != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: fileName ?? 'document.pdf',
-      ));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName ?? 'document.pdf',
+        ),
+      );
     } else if (filePath != null) {
       request.files.add(await http.MultipartFile.fromPath('file', filePath));
     } else {
@@ -42,7 +44,9 @@ class DocumentService {
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    if (response.statusCode == 202 || response.statusCode == 200 || response.statusCode == 201) {
+    if (response.statusCode == 202 ||
+        response.statusCode == 200 ||
+        response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
       try {
@@ -82,7 +86,9 @@ class DocumentService {
     } else {
       try {
         final error = jsonDecode(response.body);
-        throw Exception(error['detail'] ?? 'Failed to fetch documents for book');
+        throw Exception(
+          error['detail'] ?? 'Failed to fetch documents for book',
+        );
       } catch (e) {
         if (e is FormatException) {
           throw Exception('An unexpected server error occurred.');

@@ -9,6 +9,7 @@ import 'package:printing/printing.dart';
 import '../core/utils/text_sanitizer.dart';
 import '../core/utils/svg_sanitizer.dart';
 import '../features/paper_creation/models/custom_element.dart';
+import 'dart:convert';
 
 class PdfExportService {
   static pw.Font? _baseFont;
@@ -53,7 +54,7 @@ class PdfExportService {
         fontFallback: _fallbackFonts!,
       );
     } catch (e) {
-      print('[PdfExportService] Warning: Failed to load Google Fonts ($e). Falling back to base theme.');
+      //       print('[PdfExportService] Warning: Failed to load Google Fonts ($e). Falling back to base theme.');
       return pw.ThemeData.base();
     }
   }
@@ -77,9 +78,18 @@ class PdfExportService {
 
     String _convertToRoman(String input) {
       const romanNumerals = {
-        1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V',
-        6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X',
-        11: 'XI', 12: 'XII'
+        1: 'I',
+        2: 'II',
+        3: 'III',
+        4: 'IV',
+        5: 'V',
+        6: 'VI',
+        7: 'VII',
+        8: 'VIII',
+        9: 'IX',
+        10: 'X',
+        11: 'XI',
+        12: 'XII',
       };
       return input.replaceAllMapped(RegExp(r'\b(\d+)\b'), (match) {
         int? num = int.tryParse(match.group(1) ?? '');
@@ -94,8 +104,8 @@ class PdfExportService {
         ? className!
         : (paper['class_name'] as String? ?? ''));
     final String resolvedClass = _convertToRoman(rawClass);
-    final int resolvedMinutes = timeAllowedMinutes ??
-        (paper['time_allowed_minutes'] as int? ?? 0);
+    final int resolvedMinutes =
+        timeAllowedMinutes ?? (paper['time_allowed_minutes'] as int? ?? 0);
 
     // Convert minutes → display string e.g. "3 Hours" or "1 Hr 30 Min"
     String formatDuration(int minutes) {
@@ -114,6 +124,44 @@ class PdfExportService {
     for (final q in questions) {
       final sectionName = q['section_name'] ?? 'General';
       sections.putIfAbsent(sectionName, () => []).add(q);
+    }
+
+    // Parse blueprint_json to find section instructions
+    Map<String, dynamic> blueprintMap = {};
+    try {
+      final bpJson = paper['blueprint_json'];
+      if (bpJson != null) {
+        dynamic decoded = bpJson;
+        if (bpJson is String) {
+          decoded = jsonDecode(bpJson);
+        }
+
+        if (decoded is Map) {
+          if (decoded.containsKey('sections') && decoded['sections'] is List) {
+            for (var sec in decoded['sections']) {
+              if (sec is Map) {
+                final sName = sec['name'] ?? sec['section_name'];
+                if (sName != null) {
+                  blueprintMap[sName.toString()] = sec;
+                }
+              }
+            }
+          } else {
+            blueprintMap = Map<String, dynamic>.from(decoded);
+          }
+        } else if (decoded is List) {
+          for (var sec in decoded) {
+            if (sec is Map) {
+              final sName = sec['name'] ?? sec['section_name'];
+              if (sName != null) {
+                blueprintMap[sName.toString()] = sec;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      //       print('[PdfExportService] Failed to parse blueprint_json: $e');
     }
 
     // Pre-rasterize question SVGs to PNG bytes for 100% reliable PDF rendering (avoids Helvetica Unicode/Latin1 errors)
@@ -139,9 +187,11 @@ class PdfExportService {
               return pw.SizedBox.shrink();
             }
             // Filter elements belonging to this specific page (context.pageNumber is 1-indexed)
-            final pageElements = customElements.where((e) => e.pageIndex == context.pageNumber - 1).toList();
+            final pageElements = customElements
+                .where((e) => e.pageIndex == context.pageNumber - 1)
+                .toList();
             if (pageElements.isEmpty) return pw.SizedBox.shrink();
-            
+
             return pw.FullPage(
               ignoreMargins: true,
               child: pw.Stack(
@@ -162,10 +212,7 @@ class PdfExportService {
             margin: const pw.EdgeInsets.only(top: 10),
             child: pw.Text(
               '${context.pageNumber}',
-              style: const pw.TextStyle(
-                fontSize: 10,
-                color: PdfColors.grey700,
-              ),
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
             ),
           );
         },
@@ -265,11 +312,36 @@ class PdfExportService {
 
           // Sections
           sections.forEach((sectionName, sectionQuestions) {
+            final sectionBlueprint = blueprintMap[sectionName];
+            String? instruction;
+
+            if (sectionBlueprint != null && sectionBlueprint is Map) {
+              final attemptCount = sectionBlueprint['attempt_question_count'];
+              final choiceRule = sectionBlueprint['choice_rule'];
+
+              if (attemptCount != null &&
+                  attemptCount is num &&
+                  attemptCount > 0) {
+                instruction = '(Attempt any $attemptCount of these)';
+              } else if (choiceRule != null &&
+                  choiceRule.toString().isNotEmpty) {
+                if (choiceRule == 'answer_one_of_two') {
+                  instruction = '(Attempt any 1 of these)';
+                } else {
+                  instruction = '($choiceRule)';
+                }
+              }
+            }
+
+            final String displaySectionName = instruction != null
+                ? '$sectionName $instruction'
+                : sectionName;
+
             content.add(
               pw.Padding(
                 padding: const pw.EdgeInsets.only(top: 16, bottom: 8),
                 child: pw.Text(
-                  sectionName,
+                  displaySectionName,
                   style: pw.TextStyle(
                     fontSize: 18,
                     fontWeight: pw.FontWeight.bold,
@@ -283,9 +355,12 @@ class PdfExportService {
 
             for (var i = 0; i < sectionQuestions.length; i++) {
               final q = sectionQuestions[i];
-              final qText = TextSanitizer.cleanLaTeX((q['question_text'] ?? 'No text provided').toString());
+              final qText = TextSanitizer.cleanLaTeX(
+                (q['question_text'] ?? 'No text provided').toString(),
+              );
               final qMarks = q['marks'] ?? 1;
-              final List<dynamic> options = q['mcq_options'] ?? q['options'] ?? [];
+              final List<dynamic> options =
+                  q['mcq_options'] ?? q['options'] ?? [];
               final String? altLabel = q['alternative_label'];
               final String? choiceGroup = q['choice_group'];
 
@@ -308,14 +383,21 @@ class PdfExportService {
                   pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(vertical: 8),
                     child: pw.Center(
-                      child: pw.Text('OR', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                      child: pw.Text(
+                        'OR',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                   ),
                 );
               }
 
-              final String questionPrefix = (choiceGroup != null && altLabel != null) 
-                  ? '$displayQuestionNumber$altLabel.' 
+              final String questionPrefix =
+                  (choiceGroup != null && altLabel != null)
+                  ? '$displayQuestionNumber$altLabel.'
                   : '$displayQuestionNumber.';
 
               content.add(
@@ -327,10 +409,11 @@ class PdfExportService {
                       pw.Row(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('$questionPrefix ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                          pw.Expanded(
-                            child: pw.Text(qText),
+                          pw.Text(
+                            '$questionPrefix ',
+                            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                           ),
+                          pw.Expanded(child: pw.Text(qText)),
                           pw.SizedBox(width: 8),
                           pw.Text('[$qMarks]'),
                         ],
@@ -350,8 +433,16 @@ class PdfExportService {
                             children: options.asMap().entries.map((entry) {
                               final optIndex = entry.key;
                               final opt = entry.value;
-                              final sanitizedOpt = TextSanitizer.cleanLaTeX(opt is Map ? (opt['option_text'] ?? opt['text'] ?? opt.toString()) : opt.toString());
-                              final label = String.fromCharCode(97 + optIndex); // a, b, c, d
+                              final sanitizedOpt = TextSanitizer.cleanLaTeX(
+                                opt is Map
+                                    ? (opt['option_text'] ??
+                                          opt['text'] ??
+                                          opt.toString())
+                                    : opt.toString(),
+                              );
+                              final label = String.fromCharCode(
+                                97 + optIndex,
+                              ); // a, b, c, d
                               return pw.Padding(
                                 padding: const pw.EdgeInsets.only(bottom: 4),
                                 child: pw.Text('$label) $sanitizedOpt'),
@@ -406,10 +497,7 @@ class PdfExportService {
     if (pngBytes != null) {
       diagramWidget = pw.ConstrainedBox(
         constraints: const pw.BoxConstraints(maxHeight: 180, maxWidth: 320),
-        child: pw.Image(
-          pw.MemoryImage(pngBytes),
-          fit: pw.BoxFit.contain,
-        ),
+        child: pw.Image(pw.MemoryImage(pngBytes), fit: pw.BoxFit.contain),
       );
     } else {
       final cleaned = SvgSanitizer.cleanSvg(rawSvg);
@@ -440,7 +528,11 @@ class PdfExportService {
               padding: const pw.EdgeInsets.only(bottom: 4),
               child: pw.Text(
                 title.trim(),
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800),
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.grey800,
+                ),
               ),
             ),
           diagramWidget,
@@ -449,7 +541,10 @@ class PdfExportService {
               padding: const pw.EdgeInsets.only(top: 4),
               child: pw.Text(
                 caption.trim(),
-                style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                style: const pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey700,
+                ),
               ),
             ),
         ],
@@ -493,17 +588,21 @@ class PdfExportService {
       pictureInfo.picture.dispose();
 
       final ui.Picture rasterPicture = recorder.endRecording();
-      final ui.Image image = await rasterPicture.toImage(renderWidth, renderHeight);
+      final ui.Image image = await rasterPicture.toImage(
+        renderWidth,
+        renderHeight,
+      );
       rasterPicture.dispose();
 
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       image.dispose();
 
       return byteData?.buffer.asUint8List();
     } catch (e) {
-      print('[PdfExportService] Warning: SVG rasterization failed ($e). Falling back to vector SvgImage.');
+      //       print('[PdfExportService] Warning: SVG rasterization failed ($e). Falling back to vector SvgImage.');
       return null;
     }
   }
 }
-

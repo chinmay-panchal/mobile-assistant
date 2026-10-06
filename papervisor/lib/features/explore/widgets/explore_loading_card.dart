@@ -5,10 +5,7 @@ import '../../auth/theme/auth_theme.dart';
 class ExploreLoadingCard extends StatelessWidget {
   final AnimationController pulseCtrl;
 
-  const ExploreLoadingCard({
-    super.key,
-    required this.pulseCtrl,
-  });
+  const ExploreLoadingCard({super.key, required this.pulseCtrl});
 
   @override
   Widget build(BuildContext context) {

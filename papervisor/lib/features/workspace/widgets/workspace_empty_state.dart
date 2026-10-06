@@ -36,10 +36,7 @@ class _WorkspaceEmptyStateState extends State<WorkspaceEmptyState>
     )..repeat(reverse: true);
 
     _floatAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _floatController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
   }
 
@@ -105,7 +102,7 @@ class _WorkspaceEmptyStateState extends State<WorkspaceEmptyState>
               cursor: canClick ? SystemMouseCursors.click : MouseCursor.defer,
               child: GestureDetector(
                 onTap: widget.onCreateWorkspace,
-                child: const Text(
+                child: Text(
                   'Create your first workspace',
                   style: TextStyle(
                     fontFamily: WorkspaceTheme.fontFamily,
@@ -121,7 +118,7 @@ class _WorkspaceEmptyStateState extends State<WorkspaceEmptyState>
             const SizedBox(height: 8),
 
             // Subtitle
-            const Text(
+            Text(
               'Organize your classes, subjects and exam papers together in one calm space.',
               style: TextStyle(
                 fontFamily: WorkspaceTheme.fontFamily,
@@ -139,7 +136,11 @@ class _WorkspaceEmptyStateState extends State<WorkspaceEmptyState>
                 child: WorkspacePrimaryButton(
                   text: 'Create Workspace',
                   onPressed: widget.onCreateWorkspace,
-                  icon: const Icon(Icons.add_rounded, size: 19, color: Colors.white),
+                  icon: const Icon(
+                    Icons.add_rounded,
+                    size: 19,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

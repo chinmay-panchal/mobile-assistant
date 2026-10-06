@@ -27,7 +27,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   // Step 3: Password
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   int _currentStep = 1; // 1: Email, 2: OTP, 3: New Password, 4: Success
   bool _isLoading = false;
@@ -73,7 +74,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
       final res = await _authService.forgotPassword(email: email);
       if (mounted) {
-        _showSnackBar(res['message'] ?? 'OTP code sent to your email.', isError: false);
+        _showSnackBar(
+          res['message'] ?? 'OTP code sent to your email.',
+          isError: false,
+        );
         setState(() => _currentStep = 2);
       }
     } catch (e) {
@@ -131,7 +135,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.resetPassword(resetToken: _resetToken, newPassword: newPass);
+      await _authService.resetPassword(
+        resetToken: _resetToken,
+        newPassword: newPass,
+      );
       if (mounted) {
         setState(() => _currentStep = 4);
       }
@@ -205,7 +212,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.shield_outlined, size: 14, color: AuthTheme.primary),
+                  const Icon(
+                    Icons.shield_outlined,
+                    size: 14,
+                    color: AuthTheme.primary,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Step $_currentStep of 3',
@@ -256,7 +267,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           badgeText: 'Password Recovery',
           badgeIcon: Icons.lock_reset_rounded,
           title: 'Forgot your password?',
-          subtitle: "No worries! Enter your registered email and we'll send a 6-digit verification code.",
+          subtitle:
+              "No worries! Enter your registered email and we'll send a 6-digit verification code.",
         ),
         const SizedBox(height: 28),
         Container(
@@ -265,7 +277,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: AuthTheme.surfaceWhite,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-              side: BorderSide(color: AuthTheme.inputBorder.withValues(alpha: 0.6), width: 1.0),
+              side: BorderSide(
+                color: AuthTheme.inputBorder.withValues(alpha: 0.6),
+                width: 1.0,
+              ),
             ),
             shadows: AuthTheme.cardShadow,
           ),
@@ -286,7 +301,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 text: 'Send Verification Code',
                 isLoading: _isLoading,
                 onPressed: _handleSendOtp,
-                icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                icon: const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -294,10 +313,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 24),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Back to Sign In',
-            style: AuthTheme.link,
-          ),
+          child: const Text('Back to Sign In', style: AuthTheme.link),
         ),
       ],
     );
@@ -330,7 +346,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: AuthTheme.surfaceWhite,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-              side: BorderSide(color: AuthTheme.inputBorder.withValues(alpha: 0.6), width: 1.0),
+              side: BorderSide(
+                color: AuthTheme.inputBorder.withValues(alpha: 0.6),
+                width: 1.0,
+              ),
             ),
             shadows: AuthTheme.cardShadow,
           ),
@@ -347,13 +366,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 text: 'Verify Code',
                 isLoading: _isLoading,
                 onPressed: _handleVerifyOtp,
-                icon: const Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                icon: const Icon(
+                  Icons.check_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Didn't receive the code? ", style: AuthTheme.subtitle),
+                  const Text(
+                    "Didn't receive the code? ",
+                    style: AuthTheme.subtitle,
+                  ),
                   GestureDetector(
                     onTap: _isLoading ? null : _handleSendOtp,
                     child: Text(
@@ -362,7 +388,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         fontFamily: AuthTheme.fontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: _isLoading ? AuthTheme.textTertiary : AuthTheme.primary,
+                        color: _isLoading
+                            ? AuthTheme.textTertiary
+                            : AuthTheme.primary,
                       ),
                     ),
                   ),
@@ -400,7 +428,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: AuthTheme.surfaceWhite,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-              side: BorderSide(color: AuthTheme.inputBorder.withValues(alpha: 0.6), width: 1.0),
+              side: BorderSide(
+                color: AuthTheme.inputBorder.withValues(alpha: 0.6),
+                width: 1.0,
+              ),
             ),
             shadows: AuthTheme.cardShadow,
           ),
@@ -430,7 +461,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 text: 'Reset Password',
                 isLoading: _isLoading,
                 onPressed: _handleResetPassword,
-                icon: const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.white),
+                icon: const Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -455,7 +490,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           badgeText: 'All Done 🎉',
           badgeIcon: Icons.task_alt_rounded,
           title: 'Password Reset Complete!',
-          subtitle: 'Your password has been reset successfully. You can now sign in with your new credentials.',
+          subtitle:
+              'Your password has been reset successfully. You can now sign in with your new credentials.',
         ),
         const SizedBox(height: 36),
         AuthPrimaryButton(

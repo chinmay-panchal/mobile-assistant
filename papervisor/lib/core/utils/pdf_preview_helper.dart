@@ -4,10 +4,12 @@ import '../../features/auth/theme/auth_theme.dart';
 import '../../features/paper_creation/screens/saved_pdf_viewer_screen.dart';
 import '../../services/api_client.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Helper to download and preview remote PDFs in-app using [SavedPdfViewerScreen].
 class PdfPreviewHelper {
-  static const String defaultHost = 'https://revisit-humongous-wiry.ngrok-free.dev';
-  // static const String defaultHost = 'https://100.60.191.242.sslip.io';
+  static String get defaultHost =>
+      dotenv.env['HOST_URL'] ?? 'http://192.168.1.71:8000';
 
   /// Resolves the URL, displays a loading spinner, fetches binary bytes with auth,
   /// and pushes [SavedPdfViewerScreen] on success.
@@ -63,17 +65,16 @@ class PdfPreviewHelper {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => SavedPdfViewerScreen(
-              pdfBytes: bytes,
-              title: title,
-            ),
+            builder: (_) => SavedPdfViewerScreen(pdfBytes: bytes, title: title),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             backgroundColor: AuthTheme.error,
             content: Text(
               'Failed to load PDF (${response.statusCode})',
@@ -88,7 +89,9 @@ class PdfPreviewHelper {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           backgroundColor: AuthTheme.error,
           content: Text(
             'Error opening PDF preview: $e',

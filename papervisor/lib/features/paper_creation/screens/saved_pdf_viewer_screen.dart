@@ -54,7 +54,10 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
           scrolledUnderElevation: 0,
           iconTheme: const IconThemeData(color: AuthTheme.textPrimary),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AuthTheme.textPrimary),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: AuthTheme.textPrimary,
+            ),
             tooltip: 'Back',
             onPressed: () => Navigator.pop(context),
           ),
@@ -115,12 +118,18 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
               pagesBuilder: (context, pages) {
                 return LayoutBuilder(
                   builder: (context, constraints) {
-                    final isWebOrDesktop = MediaQuery.of(context).size.width >= 768;
-                    final baseWidth = isWebOrDesktop ? 720.0 : (constraints.maxWidth - 28);
+                    final isWebOrDesktop =
+                        MediaQuery.of(context).size.width >= 768;
+                    final baseWidth = isWebOrDesktop
+                        ? 720.0
+                        : (constraints.maxWidth - 28);
                     final targetWidth = baseWidth * _zoomLevel;
 
                     return SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 20,
+                      ),
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -152,7 +161,8 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
                                   ),
                                 ),
                               ),
-                              if (i < pages.length - 1) const SizedBox(height: 18),
+                              if (i < pages.length - 1)
+                                const SizedBox(height: 18),
                             ],
                           ],
                         ),
@@ -170,7 +180,10 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
               child: Material(
                 color: Colors.transparent,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(24),
@@ -191,14 +204,22 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
                         tooltip: 'Zoom out',
                         visualDensity: VisualDensity.compact,
                         onPressed: _zoomLevel > 0.6
-                            ? () => setState(() => _zoomLevel = (_zoomLevel - 0.15).clamp(0.5, 2.0))
+                            ? () => setState(
+                                () => _zoomLevel = (_zoomLevel - 0.15).clamp(
+                                  0.5,
+                                  2.0,
+                                ),
+                              )
                             : null,
                       ),
                       InkWell(
                         onTap: () => setState(() => _zoomLevel = 1.0),
                         borderRadius: BorderRadius.circular(6),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
                           child: Text(
                             '${(_zoomLevel * 100).round()}%',
                             style: const TextStyle(
@@ -215,7 +236,12 @@ class _SavedPdfViewerScreenState extends State<SavedPdfViewerScreen> {
                         tooltip: 'Zoom in',
                         visualDensity: VisualDensity.compact,
                         onPressed: _zoomLevel < 1.8
-                            ? () => setState(() => _zoomLevel = (_zoomLevel + 0.15).clamp(0.5, 2.0))
+                            ? () => setState(
+                                () => _zoomLevel = (_zoomLevel + 0.15).clamp(
+                                  0.5,
+                                  2.0,
+                                ),
+                              )
                             : null,
                       ),
                     ],

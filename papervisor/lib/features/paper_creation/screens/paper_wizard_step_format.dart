@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import '../models/paper_wizard_state.dart';
 import '../widgets/wizard_bottom_bar.dart';
 import '../widgets/wizard_step_header.dart';
+import '../widgets/alternative_type_selector.dart';
 import 'generating_loader_screen.dart';
 
 /// STEP 5: Format, Section Layout & Exam Details (Custom mode).
@@ -60,8 +64,12 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
   late TextEditingController _titleController;
   late TextEditingController _classController;
   late TextEditingController _minutesController;
-  int _selectedMinutes = 60;
+  int _selectedMinutes = 90;
   bool _hasAlternativeQuestions = false;
+  int _alternativeType =
+      1; // 1 = Simple OR, 2 = Attempt X of Y, 3 = Either/Or Section
+  List<String> _selectedAlternativeSections = [];
+  Map<String, int> _attemptQuestionCounts = {};
   bool _enableNumericalQuestions = false;
   double _numericalPercentage = 20.0;
 
@@ -73,20 +81,24 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
       _numericalPercentage = widget.state.numericalPercentage.toDouble();
     }
 
-    _selectedMinutes = widget.state.timeAllowedMinutes > 0 ? widget.state.timeAllowedMinutes : 60;
+    _selectedMinutes = widget.state.timeAllowedMinutes > 0
+        ? widget.state.timeAllowedMinutes
+        : 90;
     _titleController = TextEditingController(
       text: '${widget.subject['name'] ?? 'Subject'} Examination',
     );
     _classController = TextEditingController(
-      text: widget.state.className.isNotEmpty ? widget.state.className : 'Class 10',
+      text: widget.state.className.isNotEmpty
+          ? widget.state.className
+          : 'Class 10',
     );
-    _minutesController = TextEditingController(
-      text: '$_selectedMinutes',
-    );
+    _minutesController = TextEditingController(text: '$_selectedMinutes');
 
     // Initialize defaults
     _resetQuestionsOnlyDefaults();
     _resetHybridDefaults();
+
+    // Do not auto-select alternative sections by default
   }
 
   @override
@@ -119,15 +131,20 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     _hybridLongQ = (target * 0.3) ~/ _hybridLongMarks;
     _hybridShortQ = (target * 0.3) ~/ _hybridShortMarks;
     _hybridMcqQ = (target * 0.3) ~/ _hybridMcqMarks;
-    final rem = target - (_hybridLongQ * _hybridLongMarks) - (_hybridShortQ * _hybridShortMarks) - (_hybridMcqQ * _hybridMcqMarks);
+    final rem =
+        target -
+        (_hybridLongQ * _hybridLongMarks) -
+        (_hybridShortQ * _hybridShortMarks) -
+        (_hybridMcqQ * _hybridMcqMarks);
     _hybridVeryShortQ = rem > 0 ? rem ~/ _hybridVeryShortMarks : 0;
   }
 
-
-
   int get _questionsOnlyTotalMarks =>
-      (_veryShortQ * _veryShortMarks) + (_shortQ * _shortMarks) + (_longQ * _longMarks);
-  bool get _isQuestionsOnlyValid => _questionsOnlyTotalMarks == widget.state.totalMarks;
+      (_veryShortQ * _veryShortMarks) +
+      (_shortQ * _shortMarks) +
+      (_longQ * _longMarks);
+  bool get _isQuestionsOnlyValid =>
+      _questionsOnlyTotalMarks == widget.state.totalMarks;
 
   int get _hybridTotalMarks =>
       (_hybridMcqQ * _hybridMcqMarks) +
@@ -204,94 +221,248 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     }
   }
 
-  List<Map<String, dynamic>> _buildQuestionConfigs() {
-    final altCount = _hasAlternativeQuestions ? 2 : 1;
+  List<FormatSectionSummary> _getActiveSections() {
     switch (_selectedFormat) {
       case 1:
         return [
-          {
-            'question_type': 'MCQ',
-            'question_count': _mcqQuestions,
-            'marks_per_question': _mcqMarksEach,
-            'section_name': 'Section A',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          }
+          FormatSectionSummary(
+            name: 'Section A',
+            typeName: 'MCQ',
+            questionType: 'MCQ',
+            count: _mcqQuestions,
+            marksEach: _mcqMarksEach,
+          ),
+        ];
+      case 2:
+        final list = <FormatSectionSummary>[];
+        if (_veryShortQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section A',
+              typeName: 'Very Short',
+              questionType: 'VERY_SHORT_ANSWER',
+              count: _veryShortQ,
+              marksEach: _veryShortMarks,
+            ),
+          );
+        }
+        if (_shortQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section B',
+              typeName: 'Short Answer',
+              questionType: 'SHORT_ANSWER',
+              count: _shortQ,
+              marksEach: _shortMarks,
+            ),
+          );
+        }
+        if (_longQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section C',
+              typeName: 'Long Answer',
+              questionType: 'LONG_ANSWER',
+              count: _longQ,
+              marksEach: _longMarks,
+            ),
+          );
+        }
+        return list;
+      case 3:
+        final list = <FormatSectionSummary>[];
+        if (_hybridMcqQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section A',
+              typeName: 'MCQ',
+              questionType: 'MCQ',
+              count: _hybridMcqQ,
+              marksEach: _hybridMcqMarks,
+            ),
+          );
+        }
+        if (_hybridVeryShortQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section B',
+              typeName: 'Very Short',
+              questionType: 'VERY_SHORT_ANSWER',
+              count: _hybridVeryShortQ,
+              marksEach: _hybridVeryShortMarks,
+            ),
+          );
+        }
+        if (_hybridShortQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section C',
+              typeName: 'Short Answer',
+              questionType: 'SHORT_ANSWER',
+              count: _hybridShortQ,
+              marksEach: _hybridShortMarks,
+            ),
+          );
+        }
+        if (_hybridLongQ > 0) {
+          list.add(
+            FormatSectionSummary(
+              name: 'Section D',
+              typeName: 'Long Answer',
+              questionType: 'LONG_ANSWER',
+              count: _hybridLongQ,
+              marksEach: _hybridLongMarks,
+            ),
+          );
+        }
+        return list;
+      default:
+        return [];
+    }
+  }
+
+  List<String> get _validSelectedSections {
+    final sections = _getActiveSections();
+    if (sections.isEmpty) return [];
+    final validNames = sections.map((s) => s.name).toSet();
+    return _selectedAlternativeSections
+        .where((name) => validNames.contains(name))
+        .toList();
+  }
+
+  Map<String, dynamic> _buildSingleSectionConfig({
+    required String sectionName,
+    required String questionType,
+    required int questionCount,
+    required int marksPerQuestion,
+  }) {
+    int alternativesPerQuestion = 1;
+    int? attemptQuestionCount;
+    int orSectionsCount = 0;
+    bool hasInternalChoice = false;
+    int finalQuestionCount = questionCount;
+
+    if (_hasAlternativeQuestions &&
+        _validSelectedSections.contains(sectionName)) {
+      hasInternalChoice = true;
+      if (_alternativeType == 1) {
+        // 1) Simple OR (every question has an alternative): "alternatives_per_question": 2
+        alternativesPerQuestion = 2;
+        attemptQuestionCount = null;
+        orSectionsCount = 0;
+      } else if (_alternativeType == 2) {
+        // 2) Attempt x out of y questions: "attempt_question_count": number
+        alternativesPerQuestion = 1;
+        final yCount =
+            _attemptQuestionCounts[sectionName] ?? (questionCount + 1);
+        finalQuestionCount = yCount;
+        attemptQuestionCount = questionCount;
+        orSectionsCount = 0;
+      } else if (_alternativeType == 3) {
+        // 3) Either this section or that section: "or_sections_count": 1
+        alternativesPerQuestion = 1;
+        attemptQuestionCount = null;
+        orSectionsCount = 1;
+      }
+    }
+
+    return {
+      'section_name': sectionName,
+      'question_type': questionType,
+      'question_count': finalQuestionCount,
+      'marks_per_question': marksPerQuestion,
+      'alternatives_per_question': alternativesPerQuestion,
+      'attempt_question_count': attemptQuestionCount,
+      'or_sections_count': orSectionsCount,
+      'has_internal_choice': hasInternalChoice,
+    };
+  }
+
+  List<Map<String, dynamic>> _buildQuestionConfigs() {
+    switch (_selectedFormat) {
+      case 1:
+        return [
+          _buildSingleSectionConfig(
+            sectionName: 'Section A',
+            questionType: 'MCQ',
+            questionCount: _mcqQuestions,
+            marksPerQuestion: _mcqMarksEach,
+          ),
         ];
       case 2:
         final configs = <Map<String, dynamic>>[];
         if (_veryShortQ > 0) {
-          configs.add({
-            'question_type': 'VERY_SHORT_ANSWER',
-            'question_count': _veryShortQ,
-            'marks_per_question': _veryShortMarks,
-            'section_name': 'Section A',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section A',
+              questionType: 'VERY_SHORT_ANSWER',
+              questionCount: _veryShortQ,
+              marksPerQuestion: _veryShortMarks,
+            ),
+          );
         }
         if (_shortQ > 0) {
-          configs.add({
-            'question_type': 'SHORT_ANSWER',
-            'question_count': _shortQ,
-            'marks_per_question': _shortMarks,
-            'section_name': 'Section B',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section B',
+              questionType: 'SHORT_ANSWER',
+              questionCount: _shortQ,
+              marksPerQuestion: _shortMarks,
+            ),
+          );
         }
         if (_longQ > 0) {
-          configs.add({
-            'question_type': 'LONG_ANSWER',
-            'question_count': _longQ,
-            'marks_per_question': _longMarks,
-            'section_name': 'Section C',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section C',
+              questionType: 'LONG_ANSWER',
+              questionCount: _longQ,
+              marksPerQuestion: _longMarks,
+            ),
+          );
         }
         return configs;
       case 3:
         final configs = <Map<String, dynamic>>[];
         if (_hybridMcqQ > 0) {
-          configs.add({
-            'question_type': 'MCQ',
-            'question_count': _hybridMcqQ,
-            'marks_per_question': _hybridMcqMarks,
-            'section_name': 'Section A',
-            'has_internal_choice': false,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section A',
+              questionType: 'MCQ',
+              questionCount: _hybridMcqQ,
+              marksPerQuestion: _hybridMcqMarks,
+            ),
+          );
         }
         if (_hybridVeryShortQ > 0) {
-          configs.add({
-            'question_type': 'VERY_SHORT_ANSWER',
-            'question_count': _hybridVeryShortQ,
-            'marks_per_question': _hybridVeryShortMarks,
-            'section_name': 'Section B',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section B',
+              questionType: 'VERY_SHORT_ANSWER',
+              questionCount: _hybridVeryShortQ,
+              marksPerQuestion: _hybridVeryShortMarks,
+            ),
+          );
         }
         if (_hybridShortQ > 0) {
-          configs.add({
-            'question_type': 'SHORT_ANSWER',
-            'question_count': _hybridShortQ,
-            'marks_per_question': _hybridShortMarks,
-            'section_name': 'Section C',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section C',
+              questionType: 'SHORT_ANSWER',
+              questionCount: _hybridShortQ,
+              marksPerQuestion: _hybridShortMarks,
+            ),
+          );
         }
         if (_hybridLongQ > 0) {
-          configs.add({
-            'question_type': 'LONG_ANSWER',
-            'question_count': _hybridLongQ,
-            'marks_per_question': _hybridLongMarks,
-            'section_name': 'Section D',
-            'has_internal_choice': _hasAlternativeQuestions,
-            'alternatives_per_question': altCount,
-          });
+          configs.add(
+            _buildSingleSectionConfig(
+              sectionName: 'Section D',
+              questionType: 'LONG_ANSWER',
+              questionCount: _hybridLongQ,
+              marksPerQuestion: _hybridLongMarks,
+            ),
+          );
         }
         return configs;
       default:
@@ -306,12 +477,22 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     final className = _classController.text.trim().isNotEmpty
         ? _classController.text.trim()
         : 'Class 10';
-    final minutes = int.tryParse(_minutesController.text.trim()) ?? _selectedMinutes;
+    final minutes =
+        int.tryParse(_minutesController.text.trim()) ?? _selectedMinutes;
 
     widget.state.className = className;
     widget.state.timeAllowedMinutes = minutes;
     widget.state.enableNumericalPercentage = _enableNumericalQuestions;
-    widget.state.numericalPercentage = _enableNumericalQuestions ? _numericalPercentage.round() : 0;
+    widget.state.numericalPercentage = _enableNumericalQuestions
+        ? _numericalPercentage.round()
+        : 0;
+    widget.state.enableAlternatives = _hasAlternativeQuestions;
+    widget.state.alternativeType = _alternativeType;
+    widget.state.alternativeSectionNames = _validSelectedSections;
+    widget.state.attemptQuestionCounts =
+        (_hasAlternativeQuestions && _alternativeType == 2)
+        ? _attemptQuestionCounts
+        : {};
     widget.state.questionConfigs = _buildQuestionConfigs();
 
     Navigator.push(
@@ -328,6 +509,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     return PopScope(
       canPop: _currentStage == 0,
       onPopInvokedWithResult: (didPop, _) {
@@ -336,7 +518,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: WorkspaceTheme.canvas,
         body: SafeArea(
           bottom: false,
           child: Center(
@@ -344,75 +526,92 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               constraints: const BoxConstraints(maxWidth: 860),
               child: Column(
                 children: [
-              // Header
-              WizardStepHeader(
-                subjectName: widget.subject['name'] ?? 'Subject',
-                currentStep: 5,
-                title: _currentStage == 0 ? 'Question Format' : 'Exam Details',
-                subtitle: _currentStage == 0
-                    ? 'Choose layout pattern and configure section marks'
-                    : 'Set exam title, duration and optional formats',
-                onBack: () {
-                  if (_currentStage == 1) {
-                    setState(() => _currentStage = 0);
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
-                trailing: _currentStage == 1
-                    ? TextButton.icon(
-                        onPressed: () => setState(() => _currentStage = 0),
-                        icon: const Icon(Icons.arrow_back_rounded, size: 14, color: AuthTheme.accentSky),
-                        label: const Text(
-                          'Layout',
-                          style: TextStyle(
-                            fontFamily: AuthTheme.fontFamily,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AuthTheme.accentSky,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      )
-                    : null,
-              ),
+                  // Header
+                  WizardStepHeader(
+                    subjectName: widget.subject['name'] ?? 'Subject',
+                    currentStep: 5,
+                    title: _currentStage == 0
+                        ? 'Question Format'
+                        : 'Exam Details',
+                    subtitle: _currentStage == 0
+                        ? 'Choose layout pattern and configure section marks'
+                        : 'Set exam title, duration and optional formats',
+                    onBack: () {
+                      if (_currentStage == 1) {
+                        setState(() => _currentStage = 0);
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    },
+                    trailing: _currentStage == 1
+                        ? TextButton.icon(
+                            onPressed: () => setState(() => _currentStage = 0),
+                            icon: const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 14,
+                              color: AuthTheme.accentSky,
+                            ),
+                            label: const Text(
+                              'Layout',
+                              style: TextStyle(
+                                fontFamily: AuthTheme.fontFamily,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AuthTheme.accentSky,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          )
+                        : null,
+                  ),
 
-              // Stage switcher progress pill
-              _buildSubStageIndicator(),
+                  // Stage switcher progress pill
+                  _buildSubStageIndicator(),
 
-              // Active Stage Content
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: _currentStage == 0 ? _buildStage0Content() : _buildStage1Content(),
-                ),
-              ),
+                  // Active Stage Content
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: _currentStage == 0
+                          ? _buildStage0Content()
+                          : _buildStage1Content(),
+                    ),
+                  ),
 
-              // Bottom Action Bar
-              WizardBottomBar(
-                text: _currentStage == 0 ? 'Continue to Paper Details' : 'Generate Paper',
-                icon: _currentStage == 0 ? Icons.arrow_forward_rounded : Icons.auto_awesome_rounded,
-                onPressed: _currentStage == 0
-                    ? (_isStage0Valid ? () => setState(() => _currentStage = 1) : null)
-                    : _handleGenerate,
+                  // Bottom Action Bar
+                  WizardBottomBar(
+                    text: _currentStage == 0
+                        ? 'Continue to Paper Details'
+                        : 'Generate Paper',
+                    icon: _currentStage == 0
+                        ? Icons.arrow_forward_rounded
+                        : Icons.auto_awesome_rounded,
+                    onPressed: _currentStage == 0
+                        ? (_isStage0Valid
+                              ? () => setState(() => _currentStage = 1)
+                              : null)
+                        : _handleGenerate,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   // ── Stage Switcher Pill Indicator ──────────────────
   Widget _buildSubStageIndicator() {
     return Container(
-      color: Colors.white,
+      color: WorkspaceTheme.surfaceWhite,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
       child: Row(
         children: [
@@ -430,7 +629,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           const SizedBox(width: 8),
           Expanded(
             child: GestureDetector(
-              onTap: _isStage0Valid ? () => setState(() => _currentStage = 1) : null,
+              onTap: _isStage0Valid
+                  ? () => setState(() => _currentStage = 1)
+                  : null,
               child: _buildStageTabItem(
                 stepIndex: 2,
                 title: 'Paper Details',
@@ -454,13 +655,17 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
       padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFFEFF6FF)
-            : const Color(0xFFF8FAFC),
+            ? (WorkspaceTheme.isDark
+                  ? const Color(0xFF1E293B)
+                  : const Color(0xFFEFF6FF))
+            : WorkspaceTheme.surfaceMuted,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isActive
-              ? const Color(0xFFBAE6FD)
-              : const Color(0xFFE2E8F0),
+              ? (WorkspaceTheme.isDark
+                    ? const Color(0xFF3B82F6)
+                    : const Color(0xFFBAE6FD))
+              : WorkspaceTheme.borderSubtle,
           width: isActive ? 1.5 : 1.0,
         ),
       ),
@@ -496,7 +701,11 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                 fontFamily: AuthTheme.fontFamily,
                 fontSize: 11.5,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? const Color(0xFF0369A1) : AuthTheme.textSecondary,
+                color: isActive
+                    ? (WorkspaceTheme.isDark
+                          ? const Color(0xFF93C5FD)
+                          : const Color(0xFF0369A1))
+                    : WorkspaceTheme.textSecondary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -623,10 +832,12 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xFFF8FAFC),
+          color: isSelected
+              ? WorkspaceTheme.surfaceWhite
+              : WorkspaceTheme.surfaceMuted,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? color : const Color(0xFFE2E8F0),
+            color: isSelected ? color : WorkspaceTheme.borderSubtle,
             width: isSelected ? 2.0 : 1.0,
           ),
           boxShadow: isSelected
@@ -645,13 +856,17 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: isSelected ? color.withValues(alpha: 0.12) : const Color(0xFFF1F5F9),
+                color: isSelected
+                    ? color.withValues(alpha: 0.15)
+                    : (WorkspaceTheme.isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFF1F5F9)),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 18,
-                color: isSelected ? color : AuthTheme.textTertiary,
+                color: isSelected ? color : WorkspaceTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -661,7 +876,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                 fontFamily: AuthTheme.fontFamily,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: isSelected ? AuthTheme.textPrimary : AuthTheme.textSecondary,
+                color: isSelected
+                    ? WorkspaceTheme.textPrimary
+                    : WorkspaceTheme.textSecondary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -672,7 +889,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               style: TextStyle(
                 fontFamily: AuthTheme.fontFamily,
                 fontSize: 11,
-                color: isSelected ? color : AuthTheme.textTertiary,
+                color: isSelected ? color : WorkspaceTheme.textSecondary,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
@@ -690,7 +907,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isBalanced ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
@@ -711,7 +928,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           Row(
             children: [
               Icon(
-                isBalanced ? Icons.check_circle_rounded : Icons.pending_outlined,
+                isBalanced
+                    ? Icons.check_circle_rounded
+                    : Icons.pending_outlined,
                 color: isBalanced ? AuthTheme.success : const Color(0xFFD97706),
                 size: 18,
               ),
@@ -730,12 +949,17 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                         text: '$current',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: isBalanced ? AuthTheme.success : const Color(0xFFD97706),
+                          color: isBalanced
+                              ? AuthTheme.success
+                              : const Color(0xFFD97706),
                         ),
                       ),
                       TextSpan(
                         text: ' / $target Total',
-                        style: const TextStyle(fontWeight: FontWeight.w600, color: AuthTheme.textSecondary),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AuthTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -766,9 +990,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: WorkspaceTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -779,23 +1003,23 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Section A: MCQs',
                       style: TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       'Score allocated per question',
                       style: TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontSize: 11.5,
-                        color: AuthTheme.textSecondary,
+                        color: WorkspaceTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -805,7 +1029,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               _buildStepper(
                 value: _mcqMarksEach,
                 unit: ' mark',
-                onDec: _mcqMarksEach > 1 ? () => setState(() => _mcqMarksEach--) : null,
+                onDec: _mcqMarksEach > 1
+                    ? () => setState(() => _mcqMarksEach--)
+                    : null,
                 onInc: () => setState(() => _mcqMarksEach++),
               ),
             ],
@@ -814,31 +1040,31 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: WorkspaceTheme.surfaceMuted,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: WorkspaceTheme.borderSubtle),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Total Questions Generated:',
                     style: TextStyle(
                       fontFamily: AuthTheme.fontFamily,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: AuthTheme.textSecondary,
+                      color: WorkspaceTheme.textSecondary,
                     ),
                   ),
                 ),
                 Text(
                   '$_mcqQuestions questions',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: AuthTheme.textPrimary,
+                    color: WorkspaceTheme.textPrimary,
                   ),
                 ),
               ],
@@ -855,7 +1081,11 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded, size: 16, color: AuthTheme.error),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 16,
+                    color: AuthTheme.error,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -959,9 +1189,9 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: WorkspaceTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -972,18 +1202,22 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               Expanded(
                 child: Text(
                   sectionLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: AuthTheme.textPrimary,
+                    color: WorkspaceTheme.textPrimary,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: subtotal > 0 ? const Color(0xFFEFF6FF) : const Color(0xFFF1F5F9),
+                  color: subtotal > 0
+                      ? (WorkspaceTheme.isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFEFF6FF))
+                      : WorkspaceTheme.surfaceMuted,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -992,7 +1226,11 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
-                    color: subtotal > 0 ? const Color(0xFF0284C7) : AuthTheme.textSecondary,
+                    color: subtotal > 0
+                        ? (WorkspaceTheme.isDark
+                              ? const Color(0xFF38BDF8)
+                              : const Color(0xFF0284C7))
+                        : WorkspaceTheme.textSecondary,
                   ),
                 ),
               ),
@@ -1005,13 +1243,13 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               // Marks each stepper
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Marks: ',
                     style: TextStyle(
                       fontFamily: AuthTheme.fontFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AuthTheme.textSecondary,
+                      color: WorkspaceTheme.textSecondary,
                     ),
                   ),
                   _buildStepper(
@@ -1025,13 +1263,13 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
               // Questions count stepper
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Qty: ',
                     style: TextStyle(
                       fontFamily: AuthTheme.fontFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AuthTheme.textSecondary,
+                      color: WorkspaceTheme.textSecondary,
                     ),
                   ),
                   _buildStepper(
@@ -1065,16 +1303,18 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
             height: 28,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: onDec != null ? Colors.white : const Color(0xFFF1F5F9),
+              color: onDec != null
+                  ? WorkspaceTheme.surfaceWhite
+                  : WorkspaceTheme.surfaceMuted,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: onDec != null ? const Color(0xFFCBD5E1) : const Color(0xFFE2E8F0),
-              ),
+              border: Border.all(color: WorkspaceTheme.borderSubtle),
             ),
             child: Icon(
               Icons.remove_rounded,
               size: 15,
-              color: onDec != null ? AuthTheme.textPrimary : const Color(0xFF94A3B8),
+              color: onDec != null
+                  ? WorkspaceTheme.textPrimary
+                  : WorkspaceTheme.textSecondary,
             ),
           ),
         ),
@@ -1084,11 +1324,11 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
             unit.isEmpty ? '$value' : '$value$unit',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: AuthTheme.fontFamily,
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: AuthTheme.textPrimary,
+              color: WorkspaceTheme.textPrimary,
             ),
           ),
         ),
@@ -1099,14 +1339,14 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
             height: 28,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: WorkspaceTheme.surfaceWhite,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
+              border: Border.all(color: WorkspaceTheme.borderSubtle),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.add_rounded,
               size: 15,
-              color: AuthTheme.primary,
+              color: WorkspaceTheme.accentCobalt,
             ),
           ),
         ),
@@ -1128,9 +1368,15 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: WorkspaceTheme.isDark
+                  ? const Color(0xFF1E293B)
+                  : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFBAE6FD)),
+              border: Border.all(
+                color: WorkspaceTheme.isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFBAE6FD),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1140,19 +1386,37 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                   value: '${widget.state.totalMarks}M',
                   icon: Icons.score_outlined,
                 ),
-                Container(width: 1, height: 28, color: const Color(0xFFBAE6FD)),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFBAE6FD),
+                ),
                 _buildSummaryBadge(
                   label: 'Format',
                   value: _formatName,
                   icon: Icons.layers_outlined,
                 ),
-                Container(width: 1, height: 28, color: const Color(0xFFBAE6FD)),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFBAE6FD),
+                ),
                 _buildSummaryBadge(
                   label: 'Sections',
                   value: '$_totalSectionsCount',
                   icon: Icons.segment_rounded,
                 ),
-                Container(width: 1, height: 28, color: const Color(0xFFBAE6FD)),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFBAE6FD),
+                ),
                 _buildSummaryBadge(
                   label: 'Questions',
                   value: '$_totalQuestionsCount',
@@ -1165,14 +1429,14 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           const SizedBox(height: 20),
 
           // Paper Title & Class Details
-          const Text(
+          Text(
             'PAPER METADATA',
             style: TextStyle(
               fontFamily: AuthTheme.fontFamily,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.1,
-              color: AuthTheme.textTertiary,
+              color: WorkspaceTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
@@ -1198,14 +1462,14 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           const SizedBox(height: 20),
 
           // Duration Configuration
-          const Text(
+          Text(
             'EXAM DURATION',
             style: TextStyle(
               fontFamily: AuthTheme.fontFamily,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.1,
-              color: AuthTheme.textTertiary,
+              color: WorkspaceTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
@@ -1218,8 +1482,8 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             textInputAction: TextInputAction.done,
-            suffix: const Padding(
-              padding: EdgeInsets.only(right: 14),
+            suffix: Padding(
+              padding: const EdgeInsets.only(right: 14),
               child: Center(
                 widthFactor: 1.0,
                 child: Text(
@@ -1228,7 +1492,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                     fontFamily: AuthTheme.fontFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AuthTheme.accentSky,
+                    color: WorkspaceTheme.accentCobalt,
                   ),
                 ),
               ),
@@ -1257,16 +1521,24 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                     });
                   }
                 },
-                selectedColor: const Color(0xFFEFF6FF),
-                backgroundColor: Colors.white,
+                selectedColor: WorkspaceTheme.isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFEFF6FF),
+                backgroundColor: WorkspaceTheme.surfaceWhite,
                 labelStyle: TextStyle(
                   fontFamily: AuthTheme.fontFamily,
                   fontSize: 12,
                   fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                  color: isSel ? const Color(0xFF0284C7) : AuthTheme.textSecondary,
+                  color: isSel
+                      ? WorkspaceTheme.accentCobalt
+                      : WorkspaceTheme.textSecondary,
                 ),
                 side: BorderSide(
-                  color: isSel ? const Color(0xFFBAE6FD) : const Color(0xFFE2E8F0),
+                  color: isSel
+                      ? (WorkspaceTheme.isDark
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFFBAE6FD))
+                      : WorkspaceTheme.borderSubtle,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1278,120 +1550,127 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
           const SizedBox(height: 20),
 
           // Advanced Options
-          const Text(
+          Text(
             'ADVANCED FORMAT OPTIONS',
             style: TextStyle(
               fontFamily: AuthTheme.fontFamily,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.1,
-              color: AuthTheme.textTertiary,
+              color: WorkspaceTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
 
+          // Alternatives / Choice Selector Card
+          AlternativeTypeSelector(
+            isEnabled: _hasAlternativeQuestions,
+            onToggleEnabled: (val) {
+              setState(() {
+                _hasAlternativeQuestions = val;
+              });
+            },
+            selectedType: _alternativeType,
+            onTypeChanged: (type) {
+              setState(() {
+                _alternativeType = type;
+                if (type == 2) {
+                  // Deselect sections that have 1 or fewer questions
+                  final sections = _getActiveSections();
+                  final validNames = sections
+                      .where((s) => s.count > 1)
+                      .map((s) => s.name)
+                      .toSet();
+                  _selectedAlternativeSections.removeWhere(
+                    (name) => !validNames.contains(name),
+                  );
+                }
+              });
+            },
+            sections: _getActiveSections(),
+            selectedSections: _validSelectedSections,
+            onSectionsChanged: (sections) {
+              setState(() {
+                _selectedAlternativeSections = sections;
+              });
+            },
+            attemptCounts: _attemptQuestionCounts,
+            onAttemptCountsChanged: (counts) =>
+                setState(() => _attemptQuestionCounts = counts),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Numerical questions card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: WorkspaceTheme.cardBackground,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: WorkspaceTheme.borderSubtle),
             ),
             child: Column(
               children: [
-                // Internal choice toggle
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Internal Choice / Alternatives',
-                            style: TextStyle(
-                              fontFamily: AuthTheme.fontFamily,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13.5,
-                              color: AuthTheme.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Include "OR" alternate questions in sections',
-                            style: TextStyle(
-                              fontFamily: AuthTheme.fontFamily,
-                              fontSize: 11.5,
-                              color: AuthTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      activeThumbColor: AuthTheme.primary,
-                      value: _hasAlternativeQuestions,
-                      onChanged: (val) => setState(() => _hasAlternativeQuestions = val),
-                    ),
-                  ],
-                ),
-                const Divider(height: 20, color: Color(0xFFE2E8F0)),
-
-                // Numerical questions toggle
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
+                          Text(
                             'Numerical Questions',
                             style: TextStyle(
                               fontFamily: AuthTheme.fontFamily,
                               fontWeight: FontWeight.w700,
-                              fontSize: 13.5,
-                              color: AuthTheme.textPrimary,
+                              fontSize: 14.5,
+                              color: WorkspaceTheme.textPrimary,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'Specify percentage of numerical problems',
                             style: TextStyle(
                               fontFamily: AuthTheme.fontFamily,
-                              fontSize: 11.5,
-                              color: AuthTheme.textSecondary,
+                              fontSize: 12,
+                              color: WorkspaceTheme.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
                     Switch(
-                      activeThumbColor: AuthTheme.primary,
+                      activeThumbColor: WorkspaceTheme.accentCobalt,
+                      activeTrackColor: WorkspaceTheme.accentCobalt.withValues(
+                        alpha: 0.35,
+                      ),
                       value: _enableNumericalQuestions,
-                      onChanged: (val) => setState(() => _enableNumericalQuestions = val),
+                      onChanged: (val) =>
+                          setState(() => _enableNumericalQuestions = val),
                     ),
                   ],
                 ),
                 if (_enableNumericalQuestions) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Target Numerical Ratio',
                         style: TextStyle(
                           fontFamily: AuthTheme.fontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AuthTheme.textSecondary,
+                          color: WorkspaceTheme.textSecondary,
                         ),
                       ),
                       Text(
                         '${_numericalPercentage.round()}%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: AuthTheme.fontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: AuthTheme.primary,
+                          color: WorkspaceTheme.accentCobalt,
                         ),
                       ),
                     ],
@@ -1401,7 +1680,7 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
                     min: 5,
                     max: 60,
                     divisions: 11,
-                    activeColor: AuthTheme.primary,
+                    activeColor: WorkspaceTheme.accentCobalt,
                     onChanged: (v) => setState(() => _numericalPercentage = v),
                   ),
                 ],
@@ -1420,23 +1699,23 @@ class _PaperWizardStepFormatState extends State<PaperWizardStepFormat> {
   }) {
     return Column(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF0284C7)),
+        Icon(icon, size: 16, color: WorkspaceTheme.accentCobalt),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: AuthTheme.fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w800,
-            color: AuthTheme.textPrimary,
+            color: WorkspaceTheme.textPrimary,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: AuthTheme.fontFamily,
             fontSize: 10,
-            color: AuthTheme.textSecondary,
+            color: WorkspaceTheme.textSecondary,
           ),
         ),
       ],

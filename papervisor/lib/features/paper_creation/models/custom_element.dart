@@ -1,30 +1,27 @@
 import 'dart:typed_data';
 
-enum CustomElementType {
-  text,
-  image,
-}
+enum CustomElementType { text, image }
 
 class CustomElement {
   final String id;
   final CustomElementType type;
-  
+
   // Coordinates as relative percentages (0.0 to 1.0)
   // so they scale perfectly regardless of screen size or PDF size.
   double relativeX;
   double relativeY;
-  
+
   // Multi-page tracking and scaling
   int pageIndex;
   double scale;
-  
+
   // For text elements
   String? text;
   double fontSize;
-  
+
   // For image elements
   Uint8List? imageBytes;
-  
+
   CustomElement({
     required this.id,
     required this.type,

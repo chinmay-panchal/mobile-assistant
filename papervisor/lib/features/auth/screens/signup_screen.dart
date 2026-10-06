@@ -9,6 +9,7 @@ import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_scaffold.dart';
 import '../widgets/auth_text_field.dart';
 import 'login_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -23,6 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _agreedToPrivacy = false;
 
   @override
   void dispose() {
@@ -37,15 +39,41 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
+    
+    if (!_agreedToPrivacy) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: AuthTheme.error,
+          content: const Text(
+            'Please agree to the Privacy Policy to continue.',
+            style: TextStyle(
+              fontFamily: AuthTheme.fontFamily,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           backgroundColor: AuthTheme.error,
           content: const Text(
             'Please fill out all fields.',
-            style: TextStyle(fontFamily: AuthTheme.fontFamily, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontFamily: AuthTheme.fontFamily,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       );
@@ -67,11 +95,16 @@ class _SignupScreenState extends State<SignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             backgroundColor: AuthTheme.error,
             content: Text(
               e.toString().replaceAll('Exception: ', ''),
-              style: const TextStyle(fontFamily: AuthTheme.fontFamily, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontFamily: AuthTheme.fontFamily,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         );
@@ -85,28 +118,43 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AuthScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 8),
-          // PaperCraft Brand Title (Clean typography above cardboard, no badge pill)
-          const Row(
+          // Papervisor Brand Title
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.auto_awesome_rounded,
-                size: 18,
-                color: Color(0xFF0284C7),
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(AuthAssets.appLogo, fit: BoxFit.cover),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
-                'PaperCraft',
+                'Papervisor',
                 style: TextStyle(
                   fontFamily: AuthTheme.fontFamily,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: AuthTheme.textPrimary,
+                  color: isDark
+                      ? const Color(0xFFF8FAFC)
+                      : AuthTheme.textPrimary,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -135,7 +183,10 @@ class _SignupScreenState extends State<SignupScreen> {
               color: AuthTheme.surfaceWhite,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-                side: BorderSide(color: AuthTheme.inputBorder.withValues(alpha: 0.6), width: 1.0),
+                side: BorderSide(
+                  color: AuthTheme.inputBorder.withValues(alpha: 0.6),
+                  width: 1.0,
+                ),
               ),
               shadows: AuthTheme.cardShadow,
             ),
@@ -169,12 +220,85 @@ class _SignupScreenState extends State<SignupScreen> {
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _handleSignup(),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // Explicit Consent Checkbox inside Card
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Checkbox(
+                        value: _agreedToPrivacy,
+                        onChanged: (val) {
+                          setState(() {
+                            _agreedToPrivacy = val ?? false;
+                          });
+                        },
+                        activeColor: AuthTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        side: const BorderSide(color: Color(0xFF94A3B8)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _agreedToPrivacy = !_agreedToPrivacy;
+                              });
+                            },
+                            child: const Text(
+                              'I agree to the ',
+                              style: TextStyle(
+                                fontFamily: AuthTheme.fontFamily,
+                                fontSize: 12.5,
+                                color: AuthTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PrivacyPolicyScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Privacy Policy',
+                              style: TextStyle(
+                                fontFamily: AuthTheme.fontFamily,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: AuthTheme.accentSky,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
                 AuthPrimaryButton(
                   text: 'Create Account',
                   isLoading: _isLoading,
                   onPressed: _handleSignup,
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                  icon: const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),

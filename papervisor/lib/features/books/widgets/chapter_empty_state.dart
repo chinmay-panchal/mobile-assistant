@@ -7,10 +7,7 @@ import '../constants/chapter_assets.dart';
 class ChapterEmptyState extends StatelessWidget {
   final VoidCallback? onAddChapter;
 
-  const ChapterEmptyState({
-    super.key,
-    this.onAddChapter,
-  });
+  const ChapterEmptyState({super.key, this.onAddChapter});
 
   @override
   Widget build(BuildContext context) {
@@ -61,4 +58,3 @@ class ChapterEmptyState extends StatelessWidget {
     );
   }
 }
-

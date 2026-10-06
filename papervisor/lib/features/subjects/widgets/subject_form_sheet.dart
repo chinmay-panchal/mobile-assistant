@@ -102,7 +102,9 @@ class _SubjectFormSheetState extends State<SubjectFormSheet> {
         left: 24,
         right: 24,
         top: widget.isDialog ? 22 : 14,
-        bottom: MediaQuery.of(context).viewInsets.bottom + (widget.isDialog ? 24 : 24),
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            (widget.isDialog ? 24 : 24),
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -167,7 +169,11 @@ class _SubjectFormSheetState extends State<SubjectFormSheet> {
                 if (widget.isDialog)
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: AuthTheme.textSecondary,
+                    ),
                     splashRadius: 18,
                     tooltip: 'Close',
                   ),

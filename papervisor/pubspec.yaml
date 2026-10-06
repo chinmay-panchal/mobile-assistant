@@ -82,6 +82,7 @@ flutter:
     - assets/subject_detail/illustrations/
     - assets/chapters/illustrations/
     - assets/explore_pyqs/illustrations/
+    - assets/paper_creation/alternatives/
 
   fonts:
     - family: PlusJakartaSans

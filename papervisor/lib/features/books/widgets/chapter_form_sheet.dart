@@ -20,7 +20,8 @@ class ChapterFormSheet extends StatefulWidget {
     int? startPage,
     int? endPage,
     PlatformFile? selectedPdfFile,
-  }) onSubmit;
+  })
+  onSubmit;
 
   const ChapterFormSheet({
     super.key,
@@ -44,7 +45,8 @@ class ChapterFormSheet extends StatefulWidget {
       int? startPage,
       int? endPage,
       PlatformFile? selectedPdfFile,
-    }) onSubmit,
+    })
+    onSubmit,
   }) {
     return AdaptiveModal.show(
       context: context,
@@ -69,10 +71,13 @@ class ChapterFormSheet extends StatefulWidget {
       int? startPage,
       int? endPage,
       PlatformFile? selectedPdfFile,
-    }) onSubmit,
+    })
+    onSubmit,
   }) {
     final rawNum = chapter['chapter_number'];
-    final chapterNum = rawNum is num ? rawNum.toInt() : int.tryParse(rawNum?.toString() ?? '');
+    final chapterNum = rawNum is num
+        ? rawNum.toInt()
+        : int.tryParse(rawNum?.toString() ?? '');
     final startPage = chapter['start_page'] is num
         ? (chapter['start_page'] as num).toInt()
         : int.tryParse(chapter['start_page']?.toString() ?? '');
@@ -147,9 +152,9 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to select PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to select PDF: $e')));
       }
     }
   }
@@ -167,7 +172,8 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
       return;
     }
 
-    final chapterNum = int.tryParse(numberStr) ?? (widget.initialChapterNumber ?? 1);
+    final chapterNum =
+        int.tryParse(numberStr) ?? (widget.initialChapterNumber ?? 1);
     final startPage = int.tryParse(_startPageCtrl.text.trim());
     final endPage = int.tryParse(_endPageCtrl.text.trim());
 
@@ -181,7 +187,9 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
         return;
       }
       if (endPage < startPage) {
-        setState(() => _errorMessage = 'End page cannot be less than start page');
+        setState(
+          () => _errorMessage = 'End page cannot be less than start page',
+        );
         return;
       }
     } else {
@@ -279,8 +287,8 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
                           widget.isEditing
                               ? 'Update chapter number, name, and details.'
                               : widget.hasWholeBookPdf
-                                  ? 'Enter chapter details and page range from the book.'
-                                  : 'Enter chapter details and upload the chapter PDF.',
+                              ? 'Enter chapter details and page range from the book.'
+                              : 'Enter chapter details and upload the chapter PDF.',
                           style: const TextStyle(
                             fontFamily: AuthTheme.fontFamily,
                             fontSize: 13,
@@ -293,7 +301,11 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
                   if (widget.isDialog)
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: AuthTheme.textSecondary,
+                      ),
                       splashRadius: 18,
                       tooltip: 'Close',
                     ),
@@ -304,7 +316,10 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
               // Error banner if any
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   margin: const EdgeInsets.only(bottom: 14),
                   decoration: BoxDecoration(
                     color: AuthTheme.errorLight,
@@ -401,7 +416,10 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
                     onTap: _pickChapterPdf,
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _selectedPdfFile != null
                             ? const Color(0xFFECFDF5)
@@ -477,7 +495,8 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
                                 size: 18,
                                 color: AuthTheme.textTertiary,
                               ),
-                              onPressed: () => setState(() => _selectedPdfFile = null),
+                              onPressed: () =>
+                                  setState(() => _selectedPdfFile = null),
                               tooltip: 'Remove selected PDF',
                             ),
                         ],
@@ -498,7 +517,9 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
                       text: 'Cancel',
                       isSecondary: true,
                       height: 44,
-                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -542,7 +563,9 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
         TextField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-          inputFormatters: isNumber ? [FilteringTextInputFormatter.digitsOnly] : null,
+          inputFormatters: isNumber
+              ? [FilteringTextInputFormatter.digitsOnly]
+              : null,
           style: const TextStyle(
             fontFamily: AuthTheme.fontFamily,
             fontSize: 14,
@@ -559,7 +582,10 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
             prefixIcon: Icon(icon, size: 18, color: AuthTheme.textTertiary),
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -570,7 +596,10 @@ class _ChapterFormSheetState extends State<ChapterFormSheet> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AuthTheme.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AuthTheme.primary,
+                width: 1.5,
+              ),
             ),
           ),
         ),

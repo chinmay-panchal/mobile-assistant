@@ -11,14 +11,12 @@ import 'package:papervisor/features/workspace/widgets/workspace_loading_state.da
 void main() {
   group('Workspace UI & Component Tests', () {
     testWidgets('WorkspaceHeader renders greeting, title and action buttons', (WidgetTester tester) async {
-      bool pyqTapped = false;
       bool logoutTapped = false;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WorkspaceHeader(
-              onSearchPyq: () => pyqTapped = true,
               onLogout: () => logoutTapped = true,
             ),
           ),
@@ -27,13 +25,9 @@ void main() {
 
       expect(find.text('Hello Educator'), findsOneWidget);
       expect(find.text('Your Workspaces'), findsOneWidget);
-      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.logout_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.person_rounded), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.search_rounded));
-      expect(pyqTapped, isTrue);
-
-      await tester.tap(find.byIcon(Icons.logout_rounded));
+      await tester.tap(find.byIcon(Icons.person_rounded));
       expect(logoutTapped, isTrue);
     });
 
@@ -111,6 +105,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WorkspaceEmptyState(
+              showButton: true,
               onCreateWorkspace: () => createTapped = true,
             ),
           ),
@@ -146,7 +141,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(GridView), findsOneWidget);
     });
 
     testWidgets('WorkspaceFormSheet renders title, input and submits value', (WidgetTester tester) async {

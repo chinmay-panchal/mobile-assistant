@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../workspace/constants/workspace_theme.dart';
+import '../../workspace/widgets/workspace_primary_button.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import '../../../../services/api_client.dart';
 import '../../../../services/book_service.dart';
 import '../../../../services/paper_service.dart';
 import '../../../../services/reference_paper_service.dart';
+import '../../../../core/utils/pdf_preview_helper.dart';
 import '../../books/screens/book_chapters_screen.dart';
 import '../../paper_creation/screens/paper_wizard_screen.dart';
 import '../../paper_creation/screens/pdf_preview_screen.dart';
@@ -62,8 +67,56 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
+    _loadCachedBooks();
+    _loadCachedPapers();
     _fetchBooks();
     _fetchPapers();
+  }
+
+  void _loadCachedBooks() {
+    final cached = _bookService.getCachedBooksSync(widget.subject['id']);
+    if (cached != null && cached.isNotEmpty) {
+      _books = cached;
+      _isLoading = false;
+    }
+  }
+
+  void _loadCachedPapers() {
+    final cachedAi = _paperService.getCachedPapersSync(widget.subject['id']);
+    final cachedRef = _refService.getCachedReferencePapersSync(
+      widget.subject['id'],
+    );
+    if (cachedAi != null || cachedRef != null) {
+      _aiPapers = (cachedAi ?? [])
+          .where((p) => p['status'] != 'FAILED')
+          .toList();
+      _refPapers = cachedRef ?? [];
+      _isLoadingPapers = false;
+    }
+    _loadCachedPapersAsync();
+  }
+
+  Future<void> _loadCachedPapersAsync() async {
+    if (_aiPapers.isEmpty && _refPapers.isEmpty) {
+      final cachedAi = await _paperService.getCachedPapers(
+        widget.subject['id'],
+      );
+      final cachedRef = await _refService.getCachedReferencePapers(
+        widget.subject['id'],
+      );
+      if (!mounted) return;
+      if (cachedAi != null || cachedRef != null) {
+        setState(() {
+          if (cachedAi != null) {
+            _aiPapers = cachedAi.where((p) => p['status'] != 'FAILED').toList();
+          }
+          if (cachedRef != null) {
+            _refPapers = cachedRef;
+          }
+          _isLoadingPapers = false;
+        });
+      }
+    }
   }
 
   @override
@@ -73,10 +126,14 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
   }
 
   Future<void> _fetchBooks() async {
-    setState(() {
-      _isLoading = true;
+    if (_books.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    } else {
       _error = null;
-    });
+    }
 
     try {
       final list = await _bookService.getBooks(widget.subject['id']);
@@ -95,7 +152,9 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
   }
 
   Future<void> _fetchPapers() async {
-    setState(() => _isLoadingPapers = true);
+    if (_aiPapers.isEmpty && _refPapers.isEmpty) {
+      setState(() => _isLoadingPapers = true);
+    }
     try {
       final results = await Future.wait([
         _refService.listReferencePapers(widget.subject['id']),
@@ -114,73 +173,11 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
   }
 
   Future<void> _downloadAndViewPdf(String urlPath, String title) async {
-    // Show a loading dialog while downloading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    await PdfPreviewHelper.openRemotePdf(
+      context,
+      urlPath: urlPath,
+      title: title,
     );
-
-    try {
-      final ApiClient apiClient = ApiClient();
-      final token = await apiClient.getAccessToken();
-
-      final String fullUrl = urlPath.startsWith('http')
-          ? urlPath
-          : 'https://revisit-humongous-wiry.ngrok-free.dev$urlPath';
-          // : 'https://100.60.191.242.sslip.io$urlPath';
-
-      final response = await http.get(
-        Uri.parse(fullUrl),
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final bytes = response.bodyBytes;
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SavedPdfViewerScreen(
-              pdfBytes: bytes,
-              title: title,
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            backgroundColor: AuthTheme.error,
-            content: Text(
-              'Failed to load PDF: ${response.statusCode}',
-              style: const TextStyle(fontFamily: AuthTheme.fontFamily),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: AuthTheme.error,
-          content: Text(
-            'Error downloading PDF: $e',
-            style: const TextStyle(fontFamily: AuthTheme.fontFamily),
-          ),
-        ),
-      );
-    }
   }
 
   void _showAddBookSheet() {
@@ -225,10 +222,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BookChaptersScreen(
-          book: book,
-          subject: widget.subject,
-        ),
+        builder: (_) => BookChaptersScreen(book: book, subject: widget.subject),
       ),
     ).then((_) => _fetchBooks());
   }
@@ -244,8 +238,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
 
   void _openPaper(Map<String, dynamic> paper, bool isAi) async {
     if (isAi) {
-      final alreadySaved = paper['pdf_url'] != null &&
-          paper['pdf_url'].toString().isNotEmpty;
+      final alreadySaved =
+          paper['pdf_url'] != null && paper['pdf_url'].toString().isNotEmpty;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -259,7 +253,10 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     } else {
       final urlPath = paper['file_url'];
       if (urlPath != null) {
-        await _downloadAndViewPdf(urlPath.toString(), paper['title'] ?? 'paper');
+        await _downloadAndViewPdf(
+          urlPath.toString(),
+          paper['title'] ?? 'paper',
+        );
       }
     }
   }
@@ -267,9 +264,21 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
   void _showDeletePaperDialog(Map<String, dynamic> paper, bool isAi) {
     PaperDeleteDialog.show(
       context: context,
-      paperTitle: (paper['title'] ?? (isAi ? 'Generated Paper' : 'Reference Paper')).toString(),
+      paperTitle:
+          (paper['title'] ?? (isAi ? 'Generated Paper' : 'Reference Paper'))
+              .toString(),
       isAi: isAi,
       onConfirmDelete: () async {
+        final paperId = paper['id']?.toString();
+        if (mounted && paperId != null) {
+          setState(() {
+            if (isAi) {
+              _aiPapers.removeWhere((p) => p['id']?.toString() == paperId);
+            } else {
+              _refPapers.removeWhere((p) => p['id']?.toString() == paperId);
+            }
+          });
+        }
         if (isAi) {
           await _paperService.deletePaper(paper['id']);
         } else {
@@ -282,6 +291,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final subjectName = widget.subject['name'] as String? ?? 'Subject';
     final totalPapers = _aiPapers.length + _refPapers.length;
     final isDesktop = Responsive.isDesktop(context);
@@ -289,7 +299,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     final hPadding = isDesktop ? 36.0 : (isTablet ? 28.0 : 20.0);
 
     return Scaffold(
-      backgroundColor: AuthTheme.background,
+      backgroundColor: WorkspaceTheme.canvas,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -307,6 +317,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
                     subjectName: subjectName,
                     bookCount: _books.length,
                     paperCount: totalPapers,
+                    isLoadingBooks: _isLoading,
+                    isLoadingPapers: _isLoadingPapers,
                     onBack: () => Navigator.pop(context),
                   ),
 
@@ -317,6 +329,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
                     controller: _tabController,
                     bookCount: _books.length,
                     paperCount: totalPapers,
+                    isLoadingBooks: _isLoading,
+                    isLoadingPapers: _isLoadingPapers,
                   ),
 
                   const SizedBox(height: 16),
@@ -325,10 +339,7 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
-                      children: [
-                        _buildBooksTab(),
-                        _buildPapersTab(),
-                      ],
+                      children: [_buildBooksTab(), _buildPapersTab()],
                     ),
                   ),
                 ],
@@ -363,7 +374,11 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
                   shape: BoxShape.circle,
                   border: Border.all(color: AuthTheme.errorBorder),
                 ),
-                child: const Icon(Icons.error_outline_rounded, color: AuthTheme.error, size: 26),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: AuthTheme.error,
+                  size: 26,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -412,8 +427,8 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _fetchBooks,
-      color: AuthTheme.primary,
-      backgroundColor: Colors.white,
+      color: WorkspaceTheme.primaryDark,
+      backgroundColor: WorkspaceTheme.surfaceWhite,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
@@ -453,17 +468,15 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
         if (!_isLoadingPapers && combinedList.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4.0, bottom: 14.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
-                boxShadow: AuthTheme.buttonShadow,
+            child: WorkspacePrimaryButton(
+              text: 'Create Paper with AI',
+              height: 48,
+              icon: const Icon(
+                Icons.auto_awesome_rounded,
+                size: 18,
+                color: Colors.white,
               ),
-              child: AuthPrimaryButton(
-                text: 'Create Paper with AI',
-                height: 48,
-                icon: const Icon(Icons.auto_awesome_rounded, size: 18, color: Colors.white),
-                onPressed: _openPaperWizard,
-              ),
+              onPressed: _openPaperWizard,
             ),
           ),
 
@@ -472,36 +485,36 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
           child: _isLoadingPapers
               ? const DetailLoadingState()
               : combinedList.isEmpty
-                  ? DetailEmptyState(
-                      illustrationAsset: SubjectDetailAssets.emptyPapers,
-                      title: 'No papers yet',
-                      subtitle: 'Create your first paper to get started.',
-                      buttonText: 'Create Paper with AI',
-                      buttonIcon: Icons.auto_awesome_rounded,
-                      onAction: _openPaperWizard,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _fetchPapers,
-                      color: AuthTheme.primary,
-                      backgroundColor: Colors.white,
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
-                        padding: const EdgeInsets.only(top: 4, bottom: 28),
-                        itemCount: combinedList.length,
-                        itemBuilder: (context, index) {
-                          final paper = combinedList[index];
-                          final isAi = paper['is_ai'] == true;
-
-                          return PaperCard(
-                            paper: paper,
-                            onTap: () => _openPaper(paper, isAi),
-                            onDelete: () => _showDeletePaperDialog(paper, isAi),
-                          );
-                        },
-                      ),
+              ? DetailEmptyState(
+                  illustrationAsset: SubjectDetailAssets.emptyPapers,
+                  title: 'No papers yet',
+                  subtitle: 'Create your first paper to get started.',
+                  buttonText: 'Create Paper with AI',
+                  buttonIcon: Icons.auto_awesome_rounded,
+                  onAction: _openPaperWizard,
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchPapers,
+                  color: WorkspaceTheme.primaryDark,
+                  backgroundColor: WorkspaceTheme.surfaceWhite,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
                     ),
+                    padding: const EdgeInsets.only(top: 4, bottom: 28),
+                    itemCount: combinedList.length,
+                    itemBuilder: (context, index) {
+                      final paper = combinedList[index];
+                      final isAi = paper['is_ai'] == true;
+
+                      return PaperCard(
+                        paper: paper,
+                        onTap: () => _openPaper(paper, isAi),
+                        onDelete: () => _showDeletePaperDialog(paper, isAi),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
     );

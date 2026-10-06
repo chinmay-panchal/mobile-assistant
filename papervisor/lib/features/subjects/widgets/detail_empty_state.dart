@@ -30,10 +30,7 @@ class DetailEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AuthIllustration(
-              assetPath: illustrationAsset,
-              height: 140,
-            ),
+            AuthIllustration(assetPath: illustrationAsset, height: 140),
             const SizedBox(height: 20),
             Text(
               title,

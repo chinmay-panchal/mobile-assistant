@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Modern, tactile book card featuring pastel color identity,
 /// prominent book name, secondary indicator, and contextual action menu.
@@ -21,23 +23,27 @@ class BookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final title = (book['title'] ?? book['name'] ?? 'Untitled Book').toString();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AuthTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-        border: Border.all(color: AuthTheme.inputBorder, width: 1.2),
-        boxShadow: AuthTheme.cardShadow,
+        color: WorkspaceTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+        border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
+        boxShadow: WorkspaceTheme.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
+          borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               children: [
                 // Clean Slate Book Icon Container
@@ -45,9 +51,15 @@ class BookCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
+                    color: WorkspaceTheme.isDark
+                        ? const Color(0xFF151F32)
+                        : const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                    border: Border.all(
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF1E40AF)
+                          : const Color(0xFFBAE6FD),
+                    ),
                   ),
                   child: const Icon(
                     Icons.auto_stories_rounded,
@@ -65,24 +77,24 @@ class BookCard extends StatelessWidget {
                     children: [
                       Text(
                         title.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: AuthTheme.fontFamily,
+                        style: TextStyle(
+                          fontFamily: WorkspaceTheme.fontFamily,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AuthTheme.textPrimary,
+                          color: WorkspaceTheme.textPrimary,
                           letterSpacing: -0.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 3),
-                      const Text(
+                      Text(
                         'Chapters & study material',
                         style: TextStyle(
-                          fontFamily: AuthTheme.fontFamily,
+                          fontFamily: WorkspaceTheme.fontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: AuthTheme.textSecondary,
+                          color: WorkspaceTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -97,11 +109,17 @@ class BookCard extends StatelessWidget {
                   children: [
                     if (onEdit != null || onDelete != null)
                       PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert_rounded, color: AuthTheme.textSecondary.withValues(alpha: 0.7)),
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          color: WorkspaceTheme.textSecondary.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
                         splashRadius: 20,
+                        color: WorkspaceTheme.surfaceWhite,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
-                          side: const BorderSide(color: AuthTheme.inputBorder),
+                          side: BorderSide(color: WorkspaceTheme.borderSubtle),
                         ),
                         elevation: 4,
                         shadowColor: Colors.black.withValues(alpha: 0.08),
@@ -111,19 +129,23 @@ class BookCard extends StatelessWidget {
                         },
                         itemBuilder: (context) => [
                           if (onEdit != null)
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'edit',
                               child: Row(
                                 children: [
-                                  Icon(Icons.edit_outlined, size: 18, color: AuthTheme.textPrimary),
-                                  SizedBox(width: 10),
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color: WorkspaceTheme.textPrimary,
+                                  ),
+                                  const SizedBox(width: 10),
                                   Text(
                                     'Edit Book',
                                     style: TextStyle(
-                                      fontFamily: AuthTheme.fontFamily,
+                                      fontFamily: WorkspaceTheme.fontFamily,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: AuthTheme.textPrimary,
+                                      color: WorkspaceTheme.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -134,15 +156,19 @@ class BookCard extends StatelessWidget {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  Icon(Icons.delete_outline_rounded, size: 18, color: AuthTheme.error),
+                                  Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 18,
+                                    color: WorkspaceTheme.error,
+                                  ),
                                   SizedBox(width: 10),
                                   Text(
                                     'Delete Book',
                                     style: TextStyle(
-                                      fontFamily: AuthTheme.fontFamily,
+                                      fontFamily: WorkspaceTheme.fontFamily,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: AuthTheme.error,
+                                      color: WorkspaceTheme.error,
                                     ),
                                   ),
                                 ],
@@ -150,9 +176,9 @@ class BookCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
-                      color: AuthTheme.textTertiary,
+                      color: WorkspaceTheme.textTertiary,
                       size: 20,
                     ),
                   ],

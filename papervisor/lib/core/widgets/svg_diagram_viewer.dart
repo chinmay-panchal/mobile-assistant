@@ -44,7 +44,11 @@ class SvgDiagramViewer extends StatelessWidget {
               color: AppColors.primaryLight.withValues(alpha: 0.08),
               child: Row(
                 children: [
-                  const Icon(Icons.hub_outlined, size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.hub_outlined,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     title?.isNotEmpty == true ? title! : 'Diagram',
@@ -61,11 +65,18 @@ class SvgDiagramViewer extends StatelessWidget {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.zoom_in, size: 16, color: AppColors.textSecondary),
+                          Icon(
+                            Icons.zoom_in,
+                            size: 16,
+                            color: AppColors.textSecondary,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Zoom',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -76,7 +87,9 @@ class SvgDiagramViewer extends StatelessWidget {
 
             // SVG Content
             InkWell(
-              onTap: enableZoomOnTap ? () => _openFullscreen(context, cleaned, title) : null,
+              onTap: enableZoomOnTap
+                  ? () => _openFullscreen(context, cleaned, title)
+                  : null,
               child: Container(
                 constraints: BoxConstraints(maxHeight: maxHeight),
                 padding: const EdgeInsets.all(12),
@@ -96,11 +109,18 @@ class SvgDiagramViewer extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.broken_image_outlined, color: Colors.orange, size: 28),
+                        const Icon(
+                          Icons.broken_image_outlined,
+                          color: Colors.orange,
+                          size: 28,
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           'Unable to render diagram',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
@@ -130,7 +150,11 @@ class SvgDiagramViewer extends StatelessWidget {
     );
   }
 
-  void _openFullscreen(BuildContext context, String svgCode, String? diagramTitle) {
+  void _openFullscreen(
+    BuildContext context,
+    String svgCode,
+    String? diagramTitle,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -138,7 +162,9 @@ class SvgDiagramViewer extends StatelessWidget {
           backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(
-              diagramTitle?.isNotEmpty == true ? diagramTitle! : 'Diagram Preview',
+              diagramTitle?.isNotEmpty == true
+                  ? diagramTitle!
+                  : 'Diagram Preview',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.white,
@@ -155,7 +181,8 @@ class SvgDiagramViewer extends StatelessWidget {
                   child: SvgPicture.string(
                     svgCode,
                     fit: BoxFit.contain,
-                    placeholderBuilder: (_) => const Center(child: CircularProgressIndicator()),
+                    placeholderBuilder: (_) =>
+                        const Center(child: CircularProgressIndicator()),
                   ),
                 ),
               ),

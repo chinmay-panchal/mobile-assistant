@@ -5,10 +5,7 @@ import '../../auth/theme/auth_theme.dart';
 class DetailLoadingState extends StatefulWidget {
   final int count;
 
-  const DetailLoadingState({
-    super.key,
-    this.count = 4,
-  });
+  const DetailLoadingState({super.key, this.count = 4});
 
   @override
   State<DetailLoadingState> createState() => _DetailLoadingStateState();

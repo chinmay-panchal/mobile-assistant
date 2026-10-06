@@ -2,7 +2,7 @@
 /// and convert raw LaTeX math ($...$) into clean, readable Unicode text.
 class TextSanitizer {
   /// Sanitizes text by replacing control characters and corrupted symbols.
-  /// 
+  ///
   /// Fixes:
   /// - `\u0002` -> `°` (Degree symbol e.g., 60°C, 30°)
   /// - `\u0005` -> `µ` (Micro symbol e.g., 15.0 µF, 10 µC)
@@ -16,10 +16,13 @@ class TextSanitizer {
     // 1. Fix common corrupted symbol control codes from API/PDF text generators
     result = result.replaceAll('\u0002', '°'); // U+0002 -> Degree symbol °
     result = result.replaceAll('\u0005', 'µ'); // U+0005 -> Micro symbol µ
-    result = result.replaceAll('̉', ' Ω');       // U+0309 -> Ohm symbol Ω
+    result = result.replaceAll('̉', ' Ω'); // U+0309 -> Ohm symbol Ω
 
     // 2. Remove any remaining non-printable control characters (U+0000 - U+001F, except \n, \r, \t)
-    result = result.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]'), '');
+    result = result.replaceAll(
+      RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]'),
+      '',
+    );
 
     return result;
   }

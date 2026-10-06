@@ -71,8 +71,12 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
     return widget.books.where((b) {
       final name = (b['name'] ?? b['title'] ?? '').toString().toLowerCase();
       final subject = (b['subject']?['name'] ?? '').toString().toLowerCase();
-      final workspace = (b['workspace']?['name'] ?? '').toString().toLowerCase();
-      return name.contains(query) || subject.contains(query) || workspace.contains(query);
+      final workspace = (b['workspace']?['name'] ?? '')
+          .toString()
+          .toLowerCase();
+      return name.contains(query) ||
+          subject.contains(query) ||
+          workspace.contains(query);
     }).toList();
   }
 
@@ -84,7 +88,9 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
     final chapters = book['chapters'] as List<dynamic>?;
     if (chapters != null && chapters.isNotEmpty) {
       for (final ch in chapters) {
-        if (ch is Map && ch['pdf_url'] != null && ch['pdf_url'].toString().isNotEmpty) {
+        if (ch is Map &&
+            ch['pdf_url'] != null &&
+            ch['pdf_url'].toString().isNotEmpty) {
           return ch['pdf_url'].toString();
         }
       }
@@ -106,7 +112,9 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
       bottom: !widget.isDialog,
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * (widget.isDialog ? 0.82 : 0.85),
+          maxHeight:
+              MediaQuery.of(context).size.height *
+              (widget.isDialog ? 0.82 : 0.85),
         ),
         padding: EdgeInsets.fromLTRB(
           20,
@@ -180,7 +188,11 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                 if (widget.isDialog) ...[
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: AuthTheme.textSecondary,
+                    ),
                     splashRadius: 18,
                     tooltip: 'Close',
                   ),
@@ -207,10 +219,17 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                     color: Color(0xFF94A3B8),
                     fontSize: 13,
                   ),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    size: 20,
+                    color: Color(0xFF94A3B8),
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -221,7 +240,10 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AuthTheme.primary, width: 1.5),
+                    borderSide: const BorderSide(
+                      color: AuthTheme.primary,
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
@@ -235,7 +257,9 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Text(
-                          _searchQuery.isEmpty ? 'No books available.' : 'No books matched "$_searchQuery".',
+                          _searchQuery.isEmpty
+                              ? 'No books available.'
+                              : 'No books matched "$_searchQuery".',
                           style: const TextStyle(
                             fontFamily: AuthTheme.fontFamily,
                             color: AuthTheme.textSecondary,
@@ -251,19 +275,28 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                         final book = filtered[index];
                         final bookId = book['id']?.toString() ?? '';
                         final isSelected = _selectedBookId == bookId;
-                        final bookName = (book['name'] ?? book['title'] ?? 'Untitled Book').toString();
-                        final subjectName = (book['subject']?['name'] ?? '').toString();
-                        final workspaceName = (book['workspace']?['name'] ?? '').toString();
-                        final chapters = book['chapters'] as List<dynamic>? ?? [];
+                        final bookName =
+                            (book['name'] ?? book['title'] ?? 'Untitled Book')
+                                .toString();
+                        final subjectName = (book['subject']?['name'] ?? '')
+                            .toString();
+                        final workspaceName = (book['workspace']?['name'] ?? '')
+                            .toString();
+                        final chapters =
+                            book['chapters'] as List<dynamic>? ?? [];
                         final previewUrl = _getPreviewUrl(book);
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
+                            color: isSelected
+                                ? const Color(0xFFF8FAFC)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected ? AuthTheme.primary : const Color(0xFFE2E8F0),
+                              color: isSelected
+                                  ? AuthTheme.primary
+                                  : const Color(0xFFE2E8F0),
                               width: isSelected ? 1.8 : 1.0,
                             ),
                             boxShadow: [
@@ -280,7 +313,8 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
-                              onTap: () => setState(() => _selectedBookId = bookId),
+                              onTap: () =>
+                                  setState(() => _selectedBookId = bookId),
                               child: Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
@@ -290,15 +324,21 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                                       width: 40,
                                       height: 40,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF1F5F9),
+                                        color: isSelected
+                                            ? const Color(0xFFEFF6FF)
+                                            : const Color(0xFFF1F5F9),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: isSelected ? const Color(0xFFBAE6FD) : const Color(0xFFE2E8F0),
+                                          color: isSelected
+                                              ? const Color(0xFFBAE6FD)
+                                              : const Color(0xFFE2E8F0),
                                         ),
                                       ),
                                       child: Icon(
                                         Icons.menu_book_rounded,
-                                        color: isSelected ? AuthTheme.primary : const Color(0xFF64748B),
+                                        color: isSelected
+                                            ? AuthTheme.primary
+                                            : const Color(0xFF64748B),
                                         size: 20,
                                       ),
                                     ),
@@ -307,7 +347,8 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                                     // Book Info & Tags
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             bookName.toUpperCase(),
@@ -315,7 +356,9 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                                               fontFamily: AuthTheme.fontFamily,
                                               fontSize: 14,
                                               fontWeight: FontWeight.w700,
-                                              color: isSelected ? AuthTheme.primary : AuthTheme.textPrimary,
+                                              color: isSelected
+                                                  ? AuthTheme.primary
+                                                  : AuthTheme.textPrimary,
                                               letterSpacing: -0.2,
                                             ),
                                             maxLines: 1,
@@ -328,53 +371,92 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                                             children: [
                                               if (subjectName.isNotEmpty)
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFEFF6FF),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: const Color(
+                                                      0xFFEFF6FF,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     subjectName.toUpperCase(),
                                                     style: const TextStyle(
-                                                      fontFamily: AuthTheme.fontFamily,
+                                                      fontFamily:
+                                                          AuthTheme.fontFamily,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                       color: Color(0xFF0284C7),
                                                     ),
                                                   ),
                                                 ),
                                               if (workspaceName.isNotEmpty)
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF1F5F9),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: const Color(
+                                                      0xFFF1F5F9,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     workspaceName.toUpperCase(),
                                                     style: const TextStyle(
-                                                      fontFamily: AuthTheme.fontFamily,
+                                                      fontFamily:
+                                                          AuthTheme.fontFamily,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AuthTheme.textSecondary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: AuthTheme
+                                                          .textSecondary,
                                                     ),
                                                   ),
                                                 ),
                                               if (chapters.isNotEmpty)
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFF8FAFC),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                                    color: const Color(
+                                                      0xFFF8FAFC,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: const Color(
+                                                        0xFFE2E8F0,
+                                                      ),
+                                                    ),
                                                   ),
                                                   child: Text(
                                                     '${chapters.length} Ch.',
                                                     style: const TextStyle(
-                                                      fontFamily: AuthTheme.fontFamily,
+                                                      fontFamily:
+                                                          AuthTheme.fontFamily,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AuthTheme.textSecondary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: AuthTheme
+                                                          .textSecondary,
                                                     ),
                                                   ),
                                                 ),
@@ -410,14 +492,22 @@ class _BookSelectionSheetState extends State<BookSelectionSheet> {
                                       height: 22,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: isSelected ? AuthTheme.primary : Colors.transparent,
+                                        color: isSelected
+                                            ? AuthTheme.primary
+                                            : Colors.transparent,
                                         border: Border.all(
-                                          color: isSelected ? AuthTheme.primary : const Color(0xFFCBD5E1),
+                                          color: isSelected
+                                              ? AuthTheme.primary
+                                              : const Color(0xFFCBD5E1),
                                           width: 1.5,
                                         ),
                                       ),
                                       child: isSelected
-                                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
+                                          ? const Icon(
+                                              Icons.check_rounded,
+                                              color: Colors.white,
+                                              size: 14,
+                                            )
                                           : null,
                                     ),
                                   ],

@@ -8,10 +8,7 @@ import '../constants/workspace_theme.dart';
 class PyqSearchCard extends StatefulWidget {
   final VoidCallback onTap;
 
-  const PyqSearchCard({
-    super.key,
-    required this.onTap,
-  });
+  const PyqSearchCard({super.key, required this.onTap});
 
   @override
   State<PyqSearchCard> createState() => _PyqSearchCardState();
@@ -48,7 +45,10 @@ class _PyqSearchCardState extends State<PyqSearchCard> {
             onTapCancel: () => setState(() => _isPressed = false),
             onTap: widget.onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 children: [
                   // Left Content
@@ -58,16 +58,27 @@ class _PyqSearchCardState extends State<PyqSearchCard> {
                       children: [
                         // Refined Feature Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: WorkspaceTheme.accentLight,
-                            borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
-                            border: Border.all(color: WorkspaceTheme.accentBorder),
+                            borderRadius: BorderRadius.circular(
+                              WorkspaceTheme.radiusPill,
+                            ),
+                            border: Border.all(
+                              color: WorkspaceTheme.accentBorder,
+                            ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.auto_awesome, size: 12, color: WorkspaceTheme.accentCobalt),
+                              Icon(
+                                Icons.auto_awesome,
+                                size: 12,
+                                color: WorkspaceTheme.accentCobalt,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'PYQ Explorer',
@@ -83,7 +94,7 @@ class _PyqSearchCardState extends State<PyqSearchCard> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Find Previous Year Questions',
                           style: TextStyle(
                             fontFamily: WorkspaceTheme.fontFamily,
@@ -94,7 +105,7 @@ class _PyqSearchCardState extends State<PyqSearchCard> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Search and download PYQs for your subjects.',
                           style: TextStyle(
                             fontFamily: WorkspaceTheme.fontFamily,

@@ -39,7 +39,9 @@ class DesignerPageSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = isText ? 'Add Text' : 'Add Image';
     final icon = isText ? Icons.text_fields_rounded : Icons.image_outlined;
-    final accentColor = isText ? const Color(0xFF0284C7) : const Color(0xFF6D28D9);
+    final accentColor = isText
+        ? const Color(0xFF0284C7)
+        : const Color(0xFF6D28D9);
     final iconBg = isText ? const Color(0xFFE0F2FE) : const Color(0xFFEDE9FE);
 
     return Container(
@@ -112,7 +114,11 @@ class DesignerPageSheet extends StatelessWidget {
                 if (isDialog)
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, size: 20, color: AuthTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: AuthTheme.textSecondary,
+                    ),
                     splashRadius: 18,
                     tooltip: 'Close',
                   ),

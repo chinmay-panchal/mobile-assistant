@@ -17,8 +17,12 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final backgroundColor = isSecondary ? theme.colorScheme.surface : theme.colorScheme.primary;
-    final textColor = isSecondary ? theme.colorScheme.onSurface : theme.colorScheme.onPrimary;
+    final backgroundColor = isSecondary
+        ? theme.colorScheme.surface
+        : theme.colorScheme.primary;
+    final textColor = isSecondary
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.onPrimary;
 
     return SizedBox(
       width: double.infinity,
@@ -27,7 +31,9 @@ class PrimaryButton extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
           elevation: 0,
-          side: isSecondary ? BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.1)) : null,
+          side: isSecondary
+              ? BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.1))
+              : null,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -37,7 +43,10 @@ class PrimaryButton extends StatelessWidget {
         child: icon == null
             ? Text(
                 text,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -46,7 +55,10 @@ class PrimaryButton extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     text,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

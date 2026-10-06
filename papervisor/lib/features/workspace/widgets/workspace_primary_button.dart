@@ -57,9 +57,13 @@ class _WorkspacePrimaryButtonState extends State<WorkspacePrimaryButton> {
       border = Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2);
     } else {
       // Primary Obsidian Slate
-      bgColor = _isEnabled ? WorkspaceTheme.primaryDark : WorkspaceTheme.borderSubtle;
+      bgColor = _isEnabled
+          ? WorkspaceTheme.primaryDark
+          : WorkspaceTheme.borderSubtle;
       textColor = _isEnabled ? Colors.white : WorkspaceTheme.textMuted;
-      border = _isEnabled ? Border.all(color: WorkspaceTheme.primaryBorder) : null;
+      border = _isEnabled
+          ? Border.all(color: WorkspaceTheme.primaryBorder)
+          : null;
       if (_isEnabled) {
         shadows = WorkspaceTheme.fabShadow;
       }
@@ -80,9 +84,15 @@ class _WorkspacePrimaryButtonState extends State<WorkspacePrimaryButton> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
-            onTapDown: _isEnabled ? (_) => setState(() => _isPressed = true) : null,
-            onTapUp: _isEnabled ? (_) => setState(() => _isPressed = false) : null,
-            onTapCancel: _isEnabled ? () => setState(() => _isPressed = false) : null,
+            onTapDown: _isEnabled
+                ? (_) => setState(() => _isPressed = true)
+                : null,
+            onTapUp: _isEnabled
+                ? (_) => setState(() => _isPressed = false)
+                : null,
+            onTapCancel: _isEnabled
+                ? () => setState(() => _isPressed = false)
+                : null,
             onTap: _isEnabled ? widget.onPressed : null,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -94,7 +104,9 @@ class _WorkspacePrimaryButtonState extends State<WorkspacePrimaryButton> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2.2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.isSecondary ? WorkspaceTheme.primaryDark : Colors.white,
+                            widget.isSecondary
+                                ? WorkspaceTheme.primaryDark
+                                : Colors.white,
                           ),
                         ),
                       )

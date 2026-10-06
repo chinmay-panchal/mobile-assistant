@@ -29,7 +29,9 @@ class AuthHeader extends StatelessWidget {
             decoration: BoxDecoration(
               color: AuthTheme.pastelPurple,
               borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
-              border: Border.all(color: AuthTheme.primary.withValues(alpha: 0.12)),
+              border: Border.all(
+                color: AuthTheme.primary.withValues(alpha: 0.12),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -56,13 +58,17 @@ class AuthHeader extends StatelessWidget {
         Text(
           title,
           style: AuthTheme.headingLarge,
-          textAlign: alignment == CrossAxisAlignment.center ? TextAlign.center : TextAlign.start,
+          textAlign: alignment == CrossAxisAlignment.center
+              ? TextAlign.center
+              : TextAlign.start,
         ),
         const SizedBox(height: 8),
         Text(
           subtitle,
           style: AuthTheme.subtitle,
-          textAlign: alignment == CrossAxisAlignment.center ? TextAlign.center : TextAlign.start,
+          textAlign: alignment == CrossAxisAlignment.center
+              ? TextAlign.center
+              : TextAlign.start,
         ),
       ],
     );

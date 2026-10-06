@@ -47,7 +47,9 @@ class _SubjectDeleteDialogState extends State<SubjectDeleteDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             backgroundColor: AuthTheme.error,
             content: Text(
               e.toString().replaceAll('Exception: ', ''),
@@ -124,7 +126,9 @@ class _SubjectDeleteDialogState extends State<SubjectDeleteDialog> {
                       text: 'Cancel',
                       isSecondary: true,
                       height: 44,
-                      onPressed: _isDeleting ? null : () => Navigator.pop(context),
+                      onPressed: _isDeleting
+                          ? null
+                          : () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 12),

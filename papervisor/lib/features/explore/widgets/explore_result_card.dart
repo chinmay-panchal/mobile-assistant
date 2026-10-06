@@ -161,11 +161,18 @@ class ExploreResultCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
                       onTap: onOpenPdf,
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.visibility_rounded, color: Colors.white, size: 16),
+                            Icon(
+                              Icons.visibility_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Open',

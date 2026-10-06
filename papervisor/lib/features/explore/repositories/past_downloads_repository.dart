@@ -16,18 +16,18 @@ class DownloadedPdf {
   });
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'sourceUrl': sourceUrl,
-        'localPath': localPath,
-        'downloadedAt': downloadedAt.toIso8601String(),
-      };
+    'title': title,
+    'sourceUrl': sourceUrl,
+    'localPath': localPath,
+    'downloadedAt': downloadedAt.toIso8601String(),
+  };
 
   factory DownloadedPdf.fromJson(Map<String, dynamic> json) => DownloadedPdf(
-        title: json['title'] as String,
-        sourceUrl: json['sourceUrl'] as String,
-        localPath: json['localPath'] as String,
-        downloadedAt: DateTime.parse(json['downloadedAt'] as String),
-      );
+    title: json['title'] as String,
+    sourceUrl: json['sourceUrl'] as String,
+    localPath: json['localPath'] as String,
+    downloadedAt: DateTime.parse(json['downloadedAt'] as String),
+  );
 }
 
 /// Persists and retrieves past PDF downloads using [SharedPreferences].

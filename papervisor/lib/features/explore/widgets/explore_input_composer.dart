@@ -21,9 +21,7 @@ class ExploreInputComposer extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AuthTheme.inputBorder, width: 1),
-        ),
+        border: Border(top: BorderSide(color: AuthTheme.inputBorder, width: 1)),
       ),
       padding: EdgeInsets.fromLTRB(
         16,
@@ -129,13 +127,17 @@ class ExploreInputComposer extends StatelessWidget {
                                 height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : Icon(
                                 Icons.arrow_upward_rounded,
                                 size: 20,
-                                color: canSend ? Colors.white : const Color(0xFF94A3B8),
+                                color: canSend
+                                    ? Colors.white
+                                    : const Color(0xFF94A3B8),
                               ),
                       ),
                     ),

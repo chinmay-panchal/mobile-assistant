@@ -30,7 +30,8 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
 
   @override
   Widget build(BuildContext context) {
-    final name = (widget.workspace['name'] as String? ?? 'Untitled Workspace').toUpperCase();
+    final name = (widget.workspace['name'] as String? ?? 'Untitled Workspace')
+        .toUpperCase();
     final subjectCount = widget.workspace['subjectCount'] as int? ?? 0;
 
     return Container(
@@ -39,10 +40,14 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
         color: WorkspaceTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
         border: Border.all(
-          color: _isHovered ? WorkspaceTheme.accentCobalt.withValues(alpha: 0.6) : WorkspaceTheme.borderSubtle,
+          color: _isHovered
+              ? WorkspaceTheme.accentCobalt.withValues(alpha: 0.6)
+              : WorkspaceTheme.borderSubtle,
           width: 1.2,
         ),
-        boxShadow: _isHovered ? WorkspaceTheme.cardHoverShadow : WorkspaceTheme.cardShadow,
+        boxShadow: _isHovered
+            ? WorkspaceTheme.cardHoverShadow
+            : WorkspaceTheme.cardShadow,
       ),
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
@@ -68,21 +73,27 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: _isHovered ? WorkspaceTheme.accentCobalt : WorkspaceTheme.accentLight,
+                          color: _isHovered
+                              ? WorkspaceTheme.accentCobalt
+                              : WorkspaceTheme.accentLight,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: _isHovered ? WorkspaceTheme.accentCobalt : WorkspaceTheme.accentBorder,
+                            color: _isHovered
+                                ? WorkspaceTheme.accentCobalt
+                                : WorkspaceTheme.accentBorder,
                           ),
                         ),
                         child: Icon(
                           Icons.folder_rounded,
-                          color: _isHovered ? Colors.white : WorkspaceTheme.accentSky,
+                          color: _isHovered
+                              ? Colors.white
+                              : WorkspaceTheme.accentSky,
                           size: 20,
                         ),
                       ),
                       if (widget.onEdit != null || widget.onDelete != null)
                         PopupMenuButton<String>(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.more_vert_rounded,
                             color: WorkspaceTheme.textMuted,
                             size: 19,
@@ -90,22 +101,30 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                           splashRadius: 18,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
-                            side: const BorderSide(color: WorkspaceTheme.borderSubtle),
+                            side: BorderSide(
+                              color: WorkspaceTheme.borderSubtle,
+                            ),
                           ),
                           elevation: 4,
-                          shadowColor: WorkspaceTheme.primaryDark.withValues(alpha: 0.08),
+                          shadowColor: WorkspaceTheme.primaryDark.withValues(
+                            alpha: 0.08,
+                          ),
                           onSelected: (value) {
                             if (value == 'edit') widget.onEdit?.call();
                             if (value == 'delete') widget.onDelete?.call();
                           },
                           itemBuilder: (context) => [
                             if (widget.onEdit != null)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'edit',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.edit_outlined, size: 17, color: WorkspaceTheme.textPrimary),
-                                    SizedBox(width: 10),
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 17,
+                                      color: WorkspaceTheme.textPrimary,
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       'Edit Workspace',
                                       style: TextStyle(
@@ -119,18 +138,22 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                                 ),
                               ),
                             if (widget.onDelete != null)
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'delete',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.delete_outline_rounded, size: 17, color: WorkspaceTheme.error),
-                                    SizedBox(width: 10),
+                                    Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 17,
+                                      color: WorkspaceTheme.error,
+                                    ),
+                                    const SizedBox(width: 10),
                                     Text(
                                       'Delete Workspace',
                                       style: TextStyle(
                                         fontFamily: WorkspaceTheme.fontFamily,
                                         fontSize: 13.5,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                         color: WorkspaceTheme.error,
                                       ),
                                     ),
@@ -145,7 +168,7 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                   // Middle: Workspace Name
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: WorkspaceTheme.fontFamily,
                       fontSize: 15.5,
                       fontWeight: FontWeight.w800,
@@ -163,11 +186,18 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.5,
+                          vertical: 3.5,
+                        ),
                         decoration: BoxDecoration(
                           color: WorkspaceTheme.surfaceMuted,
-                          borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
-                          border: Border.all(color: WorkspaceTheme.borderSubtle),
+                          borderRadius: BorderRadius.circular(
+                            WorkspaceTheme.radiusPill,
+                          ),
+                          border: Border.all(
+                            color: WorkspaceTheme.borderSubtle,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -180,7 +210,7 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                             const SizedBox(width: 5),
                             Text(
                               '$subjectCount ${subjectCount == 1 ? "Subject" : "Subjects"}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: WorkspaceTheme.fontFamily,
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
@@ -194,15 +224,21 @@ class _WorkspaceCardState extends State<WorkspaceCard> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: _isHovered ? WorkspaceTheme.primaryDark : WorkspaceTheme.surfaceSubtle,
+                          color: _isHovered
+                              ? WorkspaceTheme.primaryDark
+                              : WorkspaceTheme.surfaceSubtle,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _isHovered ? WorkspaceTheme.primaryDark : WorkspaceTheme.borderSubtle,
+                            color: _isHovered
+                                ? WorkspaceTheme.primaryDark
+                                : WorkspaceTheme.borderSubtle,
                           ),
                         ),
                         child: Icon(
                           Icons.arrow_forward_rounded,
-                          color: _isHovered ? Colors.white : WorkspaceTheme.textTertiary,
+                          color: _isHovered
+                              ? Colors.white
+                              : WorkspaceTheme.textTertiary,
                           size: 14,
                         ),
                       ),
@@ -279,15 +315,21 @@ class _NewWorkspaceCardState extends State<NewWorkspaceCard> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: _isHovered ? WorkspaceTheme.accentCobalt : WorkspaceTheme.accentLight,
+                        color: _isHovered
+                            ? WorkspaceTheme.accentCobalt
+                            : WorkspaceTheme.accentLight,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: _isHovered ? WorkspaceTheme.accentCobalt : WorkspaceTheme.accentBorder,
+                          color: _isHovered
+                              ? WorkspaceTheme.accentCobalt
+                              : WorkspaceTheme.accentBorder,
                         ),
                       ),
                       child: Icon(
                         Icons.add_rounded,
-                        color: _isHovered ? Colors.white : WorkspaceTheme.accentCobalt,
+                        color: _isHovered
+                            ? Colors.white
+                            : WorkspaceTheme.accentCobalt,
                         size: 22,
                       ),
                     ),
@@ -298,12 +340,14 @@ class _NewWorkspaceCardState extends State<NewWorkspaceCard> {
                         fontFamily: WorkspaceTheme.fontFamily,
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
-                        color: _isHovered ? WorkspaceTheme.accentCobalt : WorkspaceTheme.textPrimary,
+                        color: _isHovered
+                            ? WorkspaceTheme.accentCobalt
+                            : WorkspaceTheme.textPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Add subjects, books & papers',
                       style: TextStyle(
                         fontFamily: WorkspaceTheme.fontFamily,
@@ -372,4 +416,3 @@ class _DashedBorderPainter extends CustomPainter {
       oldDelegate.dashLength != dashLength ||
       oldDelegate.dashGap != dashGap;
 }
-

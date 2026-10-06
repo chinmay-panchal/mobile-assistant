@@ -4,14 +4,9 @@ import '../constants/workspace_theme.dart';
 /// Top header for the Home/Workspaces screen featuring user greeting,
 /// title, and quick action icon buttons for PYQ search and logout.
 class WorkspaceHeader extends StatelessWidget {
-  final VoidCallback? onSearchPyq;
   final VoidCallback onLogout;
 
-  const WorkspaceHeader({
-    super.key,
-    this.onSearchPyq,
-    required this.onLogout,
-  });
+  const WorkspaceHeader({super.key, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +21,15 @@ class WorkspaceHeader extends StatelessWidget {
             children: [
               // Subtle, mature Educator status badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: WorkspaceTheme.surfaceWhite,
-                  borderRadius: BorderRadius.circular(WorkspaceTheme.radiusPill),
+                  borderRadius: BorderRadius.circular(
+                    WorkspaceTheme.radiusPill,
+                  ),
                   border: Border.all(color: WorkspaceTheme.borderSubtle),
                   boxShadow: [
                     BoxShadow(
@@ -39,15 +39,15 @@ class WorkspaceHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.school_outlined,
                       size: 13,
                       color: WorkspaceTheme.accentCobalt,
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
                       'Hello Educator',
                       style: TextStyle(
@@ -62,7 +62,7 @@ class WorkspaceHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Your Workspaces',
                 style: TextStyle(
                   fontFamily: WorkspaceTheme.fontFamily,
@@ -73,7 +73,7 @@ class WorkspaceHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Manage subjects, papers and study material.',
                 style: TextStyle(
                   fontFamily: WorkspaceTheme.fontFamily,
@@ -89,25 +89,14 @@ class WorkspaceHeader extends StatelessWidget {
 
         const SizedBox(width: 14),
 
-        // Action Buttons: Search (commented out) & Logout
+        // Action Buttons: Profile
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Explore / Search PYQ button (commented out)
-            // if (onSearchPyq != null) ...[
-            //   _buildActionButton(
-            //     icon: Icons.search_rounded,
-            //     tooltip: 'Search PYQs',
-            //     iconColor: WorkspaceTheme.textPrimary,
-            //     onTap: onSearchPyq!,
-            //   ),
-            //   const SizedBox(width: 8),
-            // ],
             _buildActionButton(
-              icon: Icons.logout_rounded,
-              tooltip: 'Sign Out',
-              iconColor: WorkspaceTheme.textTertiary,
-              hoverColor: WorkspaceTheme.error,
+              icon: Icons.person_rounded,
+              tooltip: 'Educator Profile',
+              iconColor: WorkspaceTheme.accentCobalt,
               onTap: onLogout,
             ),
           ],
@@ -120,7 +109,6 @@ class WorkspaceHeader extends StatelessWidget {
     required IconData icon,
     required String tooltip,
     required Color iconColor,
-    Color? hoverColor,
     required VoidCallback onTap,
   }) {
     return Tooltip(
@@ -134,12 +122,12 @@ class WorkspaceHeader extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: WorkspaceTheme.surfaceWhite,
+              color: const Color(0xFF0F172A),
               borderRadius: BorderRadius.circular(WorkspaceTheme.radiusElement),
-              border: Border.all(color: WorkspaceTheme.borderSubtle),
+              border: Border.all(color: const Color(0xFF1E293B)),
               boxShadow: [
                 BoxShadow(
-                  color: WorkspaceTheme.primaryDark.withValues(alpha: 0.03),
+                  color: Colors.black.withValues(alpha: 0.25),
                   offset: const Offset(0, 1),
                   blurRadius: 4,
                 ),

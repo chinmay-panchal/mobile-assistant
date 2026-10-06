@@ -75,13 +75,16 @@ class _AuthTextFieldState extends State<AuthTextField> {
   @override
   Widget build(BuildContext context) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
-          style: AuthTheme.inputLabel,
+          style: isDark
+              ? AuthTheme.inputLabel.copyWith(color: const Color(0xFFF1F5F9))
+              : AuthTheme.inputLabel,
         ),
         const SizedBox(height: 8),
         AnimatedContainer(
@@ -94,9 +97,22 @@ class _AuthTextFieldState extends State<AuthTextField> {
                       color: AuthTheme.error.withValues(alpha: 0.12),
                       blurRadius: 8,
                       spreadRadius: 1,
-                    )
+                    ),
                   ]
-                : (_isFocused ? AuthTheme.fieldFocusShadow : null),
+                : (_isFocused
+                      ? (isDark
+                            ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF38BDF8,
+                                  ).withValues(alpha: 0.25),
+                                  offset: const Offset(0, 0),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : AuthTheme.fieldFocusShadow)
+                      : null),
           ),
           child: TextField(
             controller: widget.controller,
@@ -107,33 +123,50 @@ class _AuthTextFieldState extends State<AuthTextField> {
             obscureText: widget.isPassword && _obscureText,
             onChanged: widget.onChanged,
             onSubmitted: widget.onSubmitted,
-            style: AuthTheme.inputText,
-            cursorColor: AuthTheme.accentSky,
+            style: isDark
+                ? AuthTheme.inputText.copyWith(color: const Color(0xFFF8FAFC))
+                : AuthTheme.inputText,
+            cursorColor: isDark ? const Color(0xFF38BDF8) : AuthTheme.accentSky,
             decoration: InputDecoration(
               isDense: true,
               filled: true,
-              fillColor: AuthTheme.inputBg,
+              fillColor: isDark ? const Color(0xFF1E293B) : AuthTheme.inputBg,
               hintText: widget.hintText,
-              hintStyle: AuthTheme.inputHint,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              hintStyle: isDark
+                  ? AuthTheme.inputHint.copyWith(color: const Color(0xFF94A3B8))
+                  : AuthTheme.inputHint,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AuthTheme.radiusField),
-                borderSide: const BorderSide(
-                  color: AuthTheme.inputBorder,
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : AuthTheme.inputBorder,
                   width: 1.0,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AuthTheme.radiusField),
                 borderSide: BorderSide(
-                  color: hasError ? AuthTheme.error : AuthTheme.inputBorder,
+                  color: hasError
+                      ? AuthTheme.error
+                      : (isDark
+                            ? const Color(0xFF334155)
+                            : AuthTheme.inputBorder),
                   width: 1.0,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AuthTheme.radiusField),
                 borderSide: BorderSide(
-                  color: hasError ? AuthTheme.error : AuthTheme.inputFocusBorder,
+                  color: hasError
+                      ? AuthTheme.error
+                      : (isDark
+                            ? const Color(0xFF38BDF8)
+                            : AuthTheme.inputFocusBorder),
                   width: 1.5,
                 ),
               ),
@@ -155,17 +188,28 @@ class _AuthTextFieldState extends State<AuthTextField> {
                   ? Icon(
                       widget.prefixIcon,
                       size: 20,
-                      color: _isFocused ? AuthTheme.accentSky : AuthTheme.textTertiary,
+                      color: _isFocused
+                          ? (isDark
+                                ? const Color(0xFF38BDF8)
+                                : AuthTheme.accentSky)
+                          : (isDark
+                                ? const Color(0xFF94A3B8)
+                                : AuthTheme.textTertiary),
                     )
                   : null,
-              suffixIcon: widget.suffix ??
+              suffixIcon:
+                  widget.suffix ??
                   (widget.isPassword
                       ? IconButton(
                           splashRadius: 20,
                           icon: Icon(
-                            _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscureText
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             size: 20,
-                            color: AuthTheme.textTertiary,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : AuthTheme.textTertiary,
                           ),
                           onPressed: () {
                             setState(() {
@@ -181,7 +225,11 @@ class _AuthTextFieldState extends State<AuthTextField> {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.error_outline_rounded, size: 14, color: AuthTheme.error),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 14,
+                color: AuthTheme.error,
+              ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(

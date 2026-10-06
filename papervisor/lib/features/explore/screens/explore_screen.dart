@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../providers/explore_provider.dart';
 import '../repositories/past_downloads_repository.dart';
@@ -111,7 +113,9 @@ class _ExploreScreenState extends State<ExploreScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           backgroundColor: AuthTheme.error,
           content: Text(
             'Could not open file: ${result.message}',
@@ -134,13 +138,14 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final provider = context.watch<ExploreProvider>();
     final isLoading = provider.status == ExploreStatus.loading;
     final downloadCount = provider.downloads.length;
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AuthTheme.background,
+      backgroundColor: WorkspaceTheme.canvas,
       endDrawer: ExploreHistoryDrawer(
         provider: provider,
         formatDate: _formatDate,
@@ -161,9 +166,11 @@ class _ExploreScreenState extends State<ExploreScreen>
                 // ── Error Banner ───────────────────────────────────────────
                 if (provider.status == ExploreStatus.error)
                   ExploreErrorBanner(
-                    message: provider.errorMessage ??
+                    message:
+                        provider.errorMessage ??
                         "Couldn't find a downloadable PDF — try rephrasing with subject and year",
-                    onDismiss: () => context.read<ExploreProvider>().resetStatus(),
+                    onDismiss: () =>
+                        context.read<ExploreProvider>().resetStatus(),
                   ),
 
                 // ── Ready Download Result Card ─────────────────────────────
@@ -194,8 +201,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                         ),
 
                       // Loading Pulse Banner Overlay
-                      if (isLoading)
-                        ExploreLoadingCard(pulseCtrl: _pulseCtrl),
+                      if (isLoading) ExploreLoadingCard(pulseCtrl: _pulseCtrl),
                     ],
                   ),
                 ),
@@ -207,6 +213,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                   isLoading: isLoading,
                   onSubmit: _submit,
                 ),
+
               ],
             ),
           ),

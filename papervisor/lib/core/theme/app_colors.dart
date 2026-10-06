@@ -5,7 +5,7 @@ class AppColors {
   static const Color primary = Color(0xFF534BDE); // Vibrant Indigo
   static const Color primaryLight = Color(0xFF7C75EC);
   static const Color primaryDark = Color(0xFF38319B);
-  
+
   // Backgrounds
   static const Color background = Color(0xFFF7F8FA);
   static const Color surface = Colors.white;

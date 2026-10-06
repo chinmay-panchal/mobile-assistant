@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../../auth/theme/auth_theme.dart';
 import '../../auth/widgets/auth_primary_button.dart';
 import '../../../../core/utils/responsive.dart';
@@ -19,10 +22,7 @@ import 'subject_detail_screen.dart';
 class SubjectGridScreen extends StatefulWidget {
   final Map<String, dynamic> workspace;
 
-  const SubjectGridScreen({
-    super.key,
-    required this.workspace,
-  });
+  const SubjectGridScreen({super.key, required this.workspace});
 
   @override
   State<SubjectGridScreen> createState() => _SubjectGridScreenState();
@@ -37,14 +37,29 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCachedSubjects();
     _fetchSubjects();
   }
 
+  void _loadCachedSubjects() {
+    final cached = _subjectService.getCachedSubjectsSync(
+      widget.workspace['id'],
+    );
+    if (cached != null && cached.isNotEmpty) {
+      _subjects = cached;
+      _isLoading = false;
+    }
+  }
+
   Future<void> _fetchSubjects() async {
-    setState(() {
-      _isLoading = true;
+    if (_subjects.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    } else {
       _error = null;
-    });
+    }
 
     try {
       final list = await _subjectService.getSubjects(widget.workspace['id']);
@@ -130,16 +145,15 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SubjectDetailScreen(
-          subject: subject,
-          workspace: widget.workspace,
-        ),
+        builder: (_) =>
+            SubjectDetailScreen(subject: subject, workspace: widget.workspace),
       ),
     ).then((_) => _fetchSubjects());
   }
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
     final workspaceName = widget.workspace['name'] as String? ?? 'Workspace';
     final isDesktop = Responsive.isDesktop(context);
     final isTablet = Responsive.isTablet(context);
@@ -158,15 +172,17 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AuthTheme.background,
+      backgroundColor: WorkspaceTheme.canvas,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: Responsive.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: Responsive.maxContentWidth,
+            ),
             child: RefreshIndicator(
               onRefresh: _fetchSubjects,
-              color: AuthTheme.primary,
-              backgroundColor: Colors.white,
+              color: WorkspaceTheme.primaryDark,
+              backgroundColor: WorkspaceTheme.surfaceWhite,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
@@ -223,26 +239,21 @@ class _SubjectGridScreenState extends State<SubjectGridScreen> {
                           mainAxisSpacing: 16,
                           childAspectRatio: childAspectRatio,
                         ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            // Last tile in the grid is always the Add Subject tile
-                            if (index == _subjects.length) {
-                              return AddSubjectTile(
-                                onTap: _showAddSubjectSheet,
-                              );
-                            }
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          // Last tile in the grid is always the Add Subject tile
+                          if (index == _subjects.length) {
+                            return AddSubjectTile(onTap: _showAddSubjectSheet);
+                          }
 
-                            final subject = _subjects[index];
-                            return SubjectCard(
-                              subject: subject,
-                              index: index,
-                              onTap: () => _openSubjectDetail(subject),
-                              onEdit: () => _showEditSubjectSheet(subject),
-                              onDelete: () => _showDeleteConfirmDialog(subject),
-                            );
-                          },
-                          childCount: _subjects.length + 1,
-                        ),
+                          final subject = _subjects[index];
+                          return SubjectCard(
+                            subject: subject,
+                            index: index,
+                            onTap: () => _openSubjectDetail(subject),
+                            onEdit: () => _showEditSubjectSheet(subject),
+                            onDelete: () => _showDeleteConfirmDialog(subject),
+                          );
+                        }, childCount: _subjects.length + 1),
                       ),
                     ),
                 ],

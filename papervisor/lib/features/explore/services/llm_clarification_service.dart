@@ -296,7 +296,9 @@ class LLMClarificationService {
         promptLower.contains('kcet') ||
         promptLower.contains('wbjee') ||
         promptLower.contains('bitsat') ||
-        RegExp(r'\b(class|grade|std|standard)\s*(\d{1,2}|x|xi|xii|ix)\b').hasMatch(promptLower) ||
+        RegExp(
+          r'\b(class|grade|std|standard)\s*(\d{1,2}|x|xi|xii|ix)\b',
+        ).hasMatch(promptLower) ||
         RegExp(r'\b(\d{1,2})(th|st|nd|rd)\b').hasMatch(promptLower) ||
         promptLower.contains('matric') ||
         promptLower.contains('intermediate');
@@ -313,7 +315,8 @@ class LLMClarificationService {
         promptLower.contains('upsc gs') ||
         promptLower.contains('upsc csat') ||
         promptLower.contains('ssc cgl') ||
-        (promptLower.contains('cbse') && (promptLower.contains('10') || promptLower.contains('12')));
+        (promptLower.contains('cbse') &&
+            (promptLower.contains('10') || promptLower.contains('12')));
 
     // Deterministic Rule 1: If prompt has BOTH specific exam AND year (e.g. "jee main 2025", "neet 2024"),
     // it is 100% UNAMBIGUOUS. Return false immediately without invoking LLM!
@@ -386,7 +389,8 @@ Return JSON:
 
       // Post-check Rule 2: Only override if prompt ALREADY has an exam/class AND a year, and question is redundantly asking for year
       if (result.isAmbiguous) {
-        final isSolelyAskingYear = (result.question?.toLowerCase().contains('which year') ?? false) ||
+        final isSolelyAskingYear =
+            (result.question?.toLowerCase().contains('which year') ?? false) ||
             (result.question?.toLowerCase().trim() == 'which year?');
         if (hasYear && hasExamOrClass && isSolelyAskingYear) {
           debugPrint(
@@ -409,7 +413,9 @@ Return JSON:
         String fallbackQ = "Which paper do you need?";
 
         if (!hasExamOrClass) {
-          final subjectLabel = promptLower.replaceAll(RegExp(r'\d+'), '').trim();
+          final subjectLabel = promptLower
+              .replaceAll(RegExp(r'\d+'), '')
+              .trim();
           final cap = subjectLabel.isNotEmpty
               ? subjectLabel[0].toUpperCase() + subjectLabel.substring(1)
               : 'this subject';
@@ -560,7 +566,8 @@ Your job:
     }
 
     final promptLower = prompt.toLowerCase();
-    if (promptLower.contains('question paper') || promptLower.contains('paper')) {
+    if (promptLower.contains('question paper') ||
+        promptLower.contains('paper')) {
       return prompt;
     }
     return '$prompt question paper';
@@ -773,25 +780,45 @@ Selected Option: "$selectedOption"
     }
 
     // 1c. Class / Grade level mismatch penalty (-25,000 Penalty)
-    final bool userWantsClass10 = RegExp(r'\b(class\s*10|10th|grade\s*10|class\s*x)\b').hasMatch(promptLower) ||
+    final bool userWantsClass10 =
+        RegExp(
+          r'\b(class\s*10|10th|grade\s*10|class\s*x)\b',
+        ).hasMatch(promptLower) ||
         (promptLower.contains('10') && !promptLower.contains('12'));
-    final bool userWantsClass12 = RegExp(r'\b(class\s*12|12th|grade\s*12|class\s*xii)\b').hasMatch(promptLower) ||
+    final bool userWantsClass12 =
+        RegExp(
+          r'\b(class\s*12|12th|grade\s*12|class\s*xii)\b',
+        ).hasMatch(promptLower) ||
         (promptLower.contains('12') && !promptLower.contains('10'));
 
     if (userWantsClass10) {
-      final hasClass12Indicator = RegExp(r'\b(class\s*12|12th|grade\s*12|class\s*xii|math-12|physics-12|chem-12|biology-12)\b').hasMatch(combinedText);
-      final hasClass9Indicator = RegExp(r'\b(class\s*(?:9|ix)|9th|grade\s*(?:9|ix))\b').hasMatch(combinedText);
-      final hasClass11Indicator = RegExp(r'\b(class\s*(?:11|xi)|11th|grade\s*(?:11|xi))\b').hasMatch(combinedText);
+      final hasClass12Indicator = RegExp(
+        r'\b(class\s*12|12th|grade\s*12|class\s*xii|math-12|physics-12|chem-12|biology-12)\b',
+      ).hasMatch(combinedText);
+      final hasClass9Indicator = RegExp(
+        r'\b(class\s*(?:9|ix)|9th|grade\s*(?:9|ix))\b',
+      ).hasMatch(combinedText);
+      final hasClass11Indicator = RegExp(
+        r'\b(class\s*(?:11|xi)|11th|grade\s*(?:11|xi))\b',
+      ).hasMatch(combinedText);
       if ((hasClass12Indicator || hasClass9Indicator || hasClass11Indicator) &&
           !RegExp(r'\b(class\s*10|10th|class\s*x)\b').hasMatch(combinedText)) {
         return -25000; // Strictly disqualify wrong class papers
       }
     } else if (userWantsClass12) {
-      final hasClass10Indicator = RegExp(r'\b(class\s*10|10th|grade\s*10|class\s*x|math-10)\b').hasMatch(combinedText);
-      final hasClass9Indicator = RegExp(r'\b(class\s*(?:9|ix)|9th|grade\s*(?:9|ix))\b').hasMatch(combinedText);
-      final hasClass11Indicator = RegExp(r'\b(class\s*(?:11|xi)|11th|grade\s*(?:11|xi))\b').hasMatch(combinedText);
+      final hasClass10Indicator = RegExp(
+        r'\b(class\s*10|10th|grade\s*10|class\s*x|math-10)\b',
+      ).hasMatch(combinedText);
+      final hasClass9Indicator = RegExp(
+        r'\b(class\s*(?:9|ix)|9th|grade\s*(?:9|ix))\b',
+      ).hasMatch(combinedText);
+      final hasClass11Indicator = RegExp(
+        r'\b(class\s*(?:11|xi)|11th|grade\s*(?:11|xi))\b',
+      ).hasMatch(combinedText);
       if ((hasClass10Indicator || hasClass9Indicator || hasClass11Indicator) &&
-          !RegExp(r'\b(class\s*12|12th|class\s*xii)\b').hasMatch(combinedText)) {
+          !RegExp(
+            r'\b(class\s*12|12th|class\s*xii)\b',
+          ).hasMatch(combinedText)) {
         return -25000;
       }
     }
@@ -824,13 +851,33 @@ Selected Option: "$selectedOption"
 
     // 1e. Specific Exam / Board Cross-Pollution Filter (-25,000 Penalty)
     if (promptLower.contains('gujcet')) {
-      final foreignBoards = ['upmsp', 'up-board', 'cbse', 'icse', 'bpsc', 'wbjee', 'mht cet', 'keam'];
-      if (foreignBoards.any((b) => combinedText.contains(b)) && !combinedText.contains('gujcet')) {
+      final foreignBoards = [
+        'upmsp',
+        'up-board',
+        'cbse',
+        'icse',
+        'bpsc',
+        'wbjee',
+        'mht cet',
+        'keam',
+      ];
+      if (foreignBoards.any((b) => combinedText.contains(b)) &&
+          !combinedText.contains('gujcet')) {
         return -25000;
       }
     }
-    if (promptLower.contains('upsc') || promptLower.contains('civil services')) {
-      final foreignExams = ['gate', 'cbse', 'icse', 'jee', 'neet', 'cat', 'civil_engg', 'civil engg'];
+    if (promptLower.contains('upsc') ||
+        promptLower.contains('civil services')) {
+      final foreignExams = [
+        'gate',
+        'cbse',
+        'icse',
+        'jee',
+        'neet',
+        'cat',
+        'civil_engg',
+        'civil engg',
+      ];
       if (foreignExams.any((e) => combinedText.contains(e)) &&
           !combinedText.contains('civil services') &&
           !combinedText.contains('cse') &&
@@ -877,8 +924,12 @@ Selected Option: "$selectedOption"
       if (kw.contains('answer key') && userWantsAnswerKey) {
         continue; // Allow answer key if user explicitly asked for it
       }
-      if ((kw.contains('pre-board') || kw.contains('preboard') || kw.contains('pre board')) &&
-          (promptLower.contains('pre-board') || promptLower.contains('preboard') || promptLower.contains('pre board'))) {
+      if ((kw.contains('pre-board') ||
+              kw.contains('preboard') ||
+              kw.contains('pre board')) &&
+          (promptLower.contains('pre-board') ||
+              promptLower.contains('preboard') ||
+              promptLower.contains('pre board'))) {
         continue; // Allow pre-board only if user explicitly asked for it
       }
 

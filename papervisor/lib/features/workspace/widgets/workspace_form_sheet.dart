@@ -10,6 +10,7 @@ class WorkspaceFormSheet extends StatefulWidget {
   final String subtitle;
   final String submitButtonText;
   final String? initialName;
+  final List<String>? existingNames;
   final Future<void> Function(String name) onSubmit;
 
   final bool isDialog;
@@ -20,6 +21,7 @@ class WorkspaceFormSheet extends StatefulWidget {
     required this.subtitle,
     required this.submitButtonText,
     this.initialName,
+    this.existingNames,
     required this.onSubmit,
     this.isDialog = false,
   });
@@ -30,6 +32,7 @@ class WorkspaceFormSheet extends StatefulWidget {
     required String subtitle,
     required String submitButtonText,
     String? initialName,
+    List<String>? existingNames,
     required Future<void> Function(String name) onSubmit,
   }) {
     return AdaptiveModal.show(
@@ -40,6 +43,7 @@ class WorkspaceFormSheet extends StatefulWidget {
         subtitle: subtitle,
         submitButtonText: submitButtonText,
         initialName: initialName,
+        existingNames: existingNames,
         onSubmit: onSubmit,
         isDialog: isDialog,
       ),
@@ -74,6 +78,24 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
       return;
     }
 
+    if (widget.existingNames != null) {
+      final isDuplicate = widget.existingNames!.any((existing) {
+        if (widget.initialName != null &&
+            existing.trim().toLowerCase() ==
+                widget.initialName!.trim().toLowerCase()) {
+          return false;
+        }
+        return existing.trim().toLowerCase() == name.toLowerCase();
+      });
+
+      if (isDuplicate) {
+        setState(
+          () => _errorText = 'A workspace with this name already exists.',
+        );
+        return;
+      }
+    }
+
     setState(() {
       _isLoading = true;
       _errorText = null;
@@ -101,7 +123,9 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
         left: 24,
         right: 24,
         top: widget.isDialog ? 22 : 14,
-        bottom: MediaQuery.of(context).viewInsets.bottom + (widget.isDialog ? 24 : 24),
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            (widget.isDialog ? 24 : 24),
       ),
       decoration: BoxDecoration(
         color: WorkspaceTheme.surfaceWhite,
@@ -142,7 +166,7 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
                     children: [
                       Text(
                         widget.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: WorkspaceTheme.fontFamily,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -153,7 +177,7 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
                       const SizedBox(height: 6),
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: WorkspaceTheme.fontFamily,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w400,
@@ -166,7 +190,11 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
                 if (widget.isDialog)
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, size: 20, color: WorkspaceTheme.textSecondary),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: WorkspaceTheme.textSecondary,
+                    ),
                     splashRadius: 18,
                     tooltip: 'Close',
                   ),
@@ -178,10 +206,15 @@ class _WorkspaceFormSheetState extends State<WorkspaceFormSheet> {
             AuthTextField(
               controller: _nameController,
               label: 'Workspace name',
-              hintText: 'e.g. Class 10th Physics',
+              hintText: 'e.g. Class 10',
               prefixIcon: Icons.folder_outlined,
               errorText: _errorText,
               textInputAction: TextInputAction.done,
+              onChanged: (_) {
+                if (_errorText != null) {
+                  setState(() => _errorText = null);
+                }
+              },
               onSubmitted: (_) => _handleSubmit(),
             ),
             const SizedBox(height: 26),

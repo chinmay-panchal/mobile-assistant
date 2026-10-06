@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import '../../../core/utils/responsive.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Clean skeleton placeholder grid shown during subject data fetching.
+/// Uses the exact same crossAxisCount and childAspectRatio as the real grid.
 class SubjectLoadingState extends StatefulWidget {
   const SubjectLoadingState({super.key});
 
@@ -35,21 +37,35 @@ class _SubjectLoadingStateState extends State<SubjectLoadingState>
 
   @override
   Widget build(BuildContext context) {
+    // Mirror exactly what subject_grid_screen.dart computes
+    final crossAxisCount = Responsive.value<int>(
+      context: context,
+      mobile: 2,
+      tablet: 3,
+      desktop: 4,
+    );
+    final childAspectRatio = Responsive.value<double>(
+      context: context,
+      mobile: 1.05,
+      tablet: 1.12,
+      desktop: 1.15,
+    );
+
     return AnimatedBuilder(
       animation: _pulseAnim,
       builder: (context, _) {
         return Opacity(
           opacity: _pulseAnim.value,
           child: GridView.builder(
-            itemCount: 6,
+            itemCount: crossAxisCount * 2, // 2 rows of ghost cards
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             padding: EdgeInsets.zero,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.1,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: childAspectRatio,
             ),
             itemBuilder: (context, index) => _buildSkeletonCard(),
           ),
@@ -62,14 +78,16 @@ class _SubjectLoadingStateState extends State<SubjectLoadingState>
     return Container(
       padding: const EdgeInsets.all(14.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(AuthTheme.radiusCard),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: WorkspaceTheme.surfaceWhite,
+        borderRadius: BorderRadius.circular(WorkspaceTheme.radiusCard),
+        border: Border.all(color: WorkspaceTheme.borderSubtle, width: 1.2),
+        boxShadow: WorkspaceTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Top Row: icon badge + menu dot placeholder
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -77,28 +95,31 @@ class _SubjectLoadingStateState extends State<SubjectLoadingState>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: WorkspaceTheme.surfaceMuted,
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               Container(
                 width: 20,
                 height: 20,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE2E8F0),
+                decoration: BoxDecoration(
+                  color: WorkspaceTheme.surfaceSubtle,
                   shape: BoxShape.circle,
                 ),
               ),
             ],
           ),
+
+          // Bottom: name + book count placeholders
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 100,
                 height: 14,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: WorkspaceTheme.surfaceMuted,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -107,7 +128,7 @@ class _SubjectLoadingStateState extends State<SubjectLoadingState>
                 width: 60,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: WorkspaceTheme.surfaceSubtle,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),

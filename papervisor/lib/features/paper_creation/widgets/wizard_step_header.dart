@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../auth/theme/auth_theme.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../workspace/constants/workspace_theme.dart';
 
 /// Clean, seamless header for all 5 steps of the Paper Creation Wizard.
 /// Designed to visually match [SubjectDetailHeader] with subject identity,
@@ -24,6 +27,8 @@ class WizardStepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ThemeProvider?>(context, listen: true);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       color: Colors.transparent,
@@ -31,11 +36,11 @@ class WizardStepHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Top Identity Row: Back Button + Subject Icon Badge + Subject Title & Step Pill
+          // Top Identity Row: Back Button (Web only) + Subject Icon Badge + Subject Title & Step Pill
           Row(
             children: [
-              // Optional Back Navigation Button
-              if (onBack != null) ...[
+              // Optional Back Navigation Button (Shown on Web only, hidden on mobile)
+              if (kIsWeb && onBack != null) ...[
                 Tooltip(
                   message: 'Back',
                   child: Material(
@@ -47,14 +52,16 @@ class WizardStepHeader extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                          color: WorkspaceTheme.surfaceMuted,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(
+                            color: WorkspaceTheme.borderSubtle,
+                          ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_rounded,
                           size: 20,
-                          color: AuthTheme.textPrimary,
+                          color: WorkspaceTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -68,9 +75,15 @@ class WizardStepHeader extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE), // Soft Sky Pastel
+                  color: WorkspaceTheme.isDark
+                      ? const Color(0xFF151F32)
+                      : const Color(0xFFE0F2FE),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
+                  border: Border.all(
+                    color: WorkspaceTheme.isDark
+                        ? const Color(0xFF1E40AF)
+                        : const Color(0xFFBAE6FD),
+                  ),
                 ),
                 child: const Icon(
                   Icons.auto_stories_rounded,
@@ -89,11 +102,11 @@ class WizardStepHeader extends StatelessWidget {
                   children: [
                     Text(
                       subjectName.toUpperCase(),
-                      style: const TextStyle(
-                        fontFamily: AuthTheme.fontFamily,
+                      style: TextStyle(
+                        fontFamily: WorkspaceTheme.fontFamily,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                         letterSpacing: -0.3,
                       ),
                       maxLines: 1,
@@ -103,16 +116,27 @@ class WizardStepHeader extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
-                            border: Border.all(color: const Color(0xFFBAE6FD)),
+                            color: WorkspaceTheme.isDark
+                                ? const Color(0xFF151F32)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(
+                              WorkspaceTheme.radiusPill,
+                            ),
+                            border: Border.all(
+                              color: WorkspaceTheme.isDark
+                                  ? const Color(0xFF1E40AF)
+                                  : const Color(0xFFBAE6FD),
+                            ),
                           ),
                           child: Text(
                             'Step $currentStep of 5',
                             style: const TextStyle(
-                              fontFamily: AuthTheme.fontFamily,
+                              fontFamily: WorkspaceTheme.fontFamily,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF0284C7),
@@ -126,7 +150,35 @@ class WizardStepHeader extends StatelessWidget {
                 ),
               ),
 
-              ?trailing,
+              if (trailing != null) ...[trailing!, const SizedBox(width: 8)],
+
+              // Home Button at top right
+              Tooltip(
+                message: 'Home',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: WorkspaceTheme.surfaceMuted,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: WorkspaceTheme.borderSubtle),
+                      ),
+                      child: Icon(
+                        Icons.home_outlined,
+                        size: 20,
+                        color: WorkspaceTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
 
@@ -135,22 +187,22 @@ class WizardStepHeader extends StatelessWidget {
           // Step Title & Subtitle
           Text(
             title,
-            style: const TextStyle(
-              fontFamily: AuthTheme.fontFamily,
+            style: TextStyle(
+              fontFamily: WorkspaceTheme.fontFamily,
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: AuthTheme.textPrimary,
+              color: WorkspaceTheme.textPrimary,
               letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontFamily: AuthTheme.fontFamily,
+            style: TextStyle(
+              fontFamily: WorkspaceTheme.fontFamily,
               fontSize: 13.5,
               fontWeight: FontWeight.w400,
-              color: AuthTheme.textSecondary,
+              color: WorkspaceTheme.textSecondary,
               height: 1.35,
             ),
           ),
@@ -166,7 +218,9 @@ class WizardStepHeader extends StatelessWidget {
                   margin: EdgeInsets.only(right: index == 4 ? 0 : 6),
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isCompleted ? AuthTheme.primary : const Color(0xFFE2E8F0),
+                    color: isCompleted
+                        ? WorkspaceTheme.primaryDark
+                        : WorkspaceTheme.borderSubtle,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),

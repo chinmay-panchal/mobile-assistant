@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../auth/theme/auth_theme.dart';
+import '../../workspace/constants/workspace_theme.dart';
 import '../constants/explore_assets.dart';
 import '../providers/explore_provider.dart';
 import '../repositories/past_downloads_repository.dart';
@@ -28,7 +29,7 @@ class ExploreHistoryDrawer extends StatelessWidget {
 
     return Drawer(
       width: drawerWidth,
-      backgroundColor: Colors.white,
+      backgroundColor: WorkspaceTheme.surfaceWhite,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
       ),
@@ -44,18 +45,22 @@ class ExploreHistoryDrawer extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF151F32)
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: WorkspaceTheme.borderSubtle),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.history_rounded,
-                      color: AuthTheme.primary,
+                      color: WorkspaceTheme.isDark
+                          ? const Color(0xFF38BDF8)
+                          : WorkspaceTheme.primaryDark,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -65,7 +70,7 @@ class ExploreHistoryDrawer extends StatelessWidget {
                             fontFamily: AuthTheme.fontFamily,
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
-                            color: AuthTheme.textPrimary,
+                            color: WorkspaceTheme.textPrimary,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -75,7 +80,7 @@ class ExploreHistoryDrawer extends StatelessWidget {
                             fontFamily: AuthTheme.fontFamily,
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
-                            color: AuthTheme.textSecondary,
+                            color: WorkspaceTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -83,14 +88,13 @@ class ExploreHistoryDrawer extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
-                    color: AuthTheme.textSecondary,
+                    color: WorkspaceTheme.textSecondary,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-
-            const Divider(color: AuthTheme.inputBorder, height: 1),
+            Divider(color: WorkspaceTheme.borderSubtle, height: 1),
 
             // Top Action Bar if items exist
             if (downloads.isNotEmpty)
@@ -100,11 +104,11 @@ class ExploreHistoryDrawer extends StatelessWidget {
                   children: [
                     Text(
                       '${downloads.length} ${downloads.length == 1 ? 'document' : 'documents'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AuthTheme.textSecondary,
+                        color: WorkspaceTheme.textSecondary,
                       ),
                     ),
                     const Spacer(),
@@ -112,7 +116,9 @@ class ExploreHistoryDrawer extends StatelessWidget {
                       color: AuthTheme.errorLight,
                       borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(AuthTheme.radiusPill),
+                        borderRadius: BorderRadius.circular(
+                          AuthTheme.radiusPill,
+                        ),
                         onTap: () {
                           HistoryDeleteDialog.showDeleteAll(
                             context: context,
@@ -122,7 +128,10 @@ class ExploreHistoryDrawer extends StatelessWidget {
                           );
                         },
                         child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -151,7 +160,7 @@ class ExploreHistoryDrawer extends StatelessWidget {
               ),
 
             if (downloads.isNotEmpty)
-              const Divider(color: AuthTheme.inputBorder, height: 1),
+              Divider(color: WorkspaceTheme.borderSubtle, height: 1),
 
             // List of downloads or Empty state
             Expanded(
@@ -169,24 +178,24 @@ class ExploreHistoryDrawer extends StatelessWidget {
                               fit: BoxFit.contain,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'No download history',
                               style: TextStyle(
                                 fontFamily: AuthTheme.fontFamily,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AuthTheme.textPrimary,
+                                color: WorkspaceTheme.textPrimary,
                               ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 6),
-                            const Text(
+                            Text(
                               'Your downloaded PYQ PDFs will appear here for offline access.',
                               style: TextStyle(
                                 fontFamily: AuthTheme.fontFamily,
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w400,
-                                color: AuthTheme.textSecondary,
+                                color: WorkspaceTheme.textSecondary,
                                 height: 1.4,
                               ),
                               textAlign: TextAlign.center,
@@ -198,7 +207,8 @@ class ExploreHistoryDrawer extends StatelessWidget {
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(14, 10, 14, 20),
                       itemCount: downloads.length,
-                      separatorBuilder: (context, _) => const SizedBox(height: 8),
+                      separatorBuilder: (context, _) =>
+                          const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final pdf = downloads[index];
                         return _HistoryItemCard(
@@ -241,7 +251,7 @@ class _HistoryItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: WorkspaceTheme.surfaceWhite,
       borderRadius: BorderRadius.circular(AuthTheme.radiusField),
       child: InkWell(
         borderRadius: BorderRadius.circular(AuthTheme.radiusField),
@@ -250,10 +260,12 @@ class _HistoryItemCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AuthTheme.radiusField),
-            border: Border.all(color: AuthTheme.inputBorder),
+            border: Border.all(color: WorkspaceTheme.borderSubtle),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withValues(
+                  alpha: WorkspaceTheme.isDark ? 0.2 : 0.02,
+                ),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -288,30 +300,30 @@ class _HistoryItemCard extends StatelessWidget {
                       pdf.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AuthTheme.textPrimary,
+                        color: WorkspaceTheme.textPrimary,
                         height: 1.25,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.schedule_rounded,
                           size: 11,
-                          color: AuthTheme.textSecondary,
+                          color: WorkspaceTheme.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           dateStr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: AuthTheme.fontFamily,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AuthTheme.textSecondary,
+                            color: WorkspaceTheme.textSecondary,
                           ),
                         ),
                       ],
